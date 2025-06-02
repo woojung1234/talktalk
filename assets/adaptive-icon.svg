@@ -1,0 +1,65 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- 안드로이드 적응형 아이콘용 (배경은 app.json에서 설정) -->
+  <defs>
+    <linearGradient id="adaptiveBubbleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95" />
+      <stop offset="100%" style="stop-color:#f8fafc;stop-opacity:0.9" />
+    </linearGradient>
+    
+    <!-- 부드러운 그림자 -->
+    <filter id="adaptiveShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- 큰 말풍선 (중앙) -->
+  <path d="M150 300 C150 260, 185 225, 225 225 L575 225 C615 225, 650 260, 650 300 L650 450 C650 490, 615 525, 575 525 L350 525 L225 575 L225 525 C185 525, 150 490, 150 450 Z" 
+        fill="url(#adaptiveBubbleGradient)" 
+        filter="url(#adaptiveShadow)"
+        stroke="#e2e8f0" 
+        stroke-width="6"/>
+  
+  <!-- 작은 말풍선 (오른쪽 상단) -->
+  <path d="M500 150 C500 130, 515 115, 535 115 L665 115 C685 115, 700 130, 700 150 L700 220 C700 240, 685 255, 665 255 L590 255 L535 285 L535 255 C515 255, 500 240, 500 220 Z" 
+        fill="url(#adaptiveBubbleGradient)" 
+        filter="url(#adaptiveShadow)"
+        stroke="#e2e8f0" 
+        stroke-width="4"/>
+  
+  <!-- 작은 말풍선 (왼쪽 하단) -->
+  <path d="M100 600 C100 585, 110 575, 125 575 L245 575 C260 575, 270 585, 270 600 L270 650 C270 665, 260 675, 245 675 L180 675 L125 700 L125 675 C110 675, 100 665, 100 650 Z" 
+        fill="url(#adaptiveBubbleGradient)" 
+        filter="url(#adaptiveShadow)"
+        stroke="#e2e8f0" 
+        stroke-width="4"/>
+  
+  <!-- 메인 말풍선 안의 텍스트 라인들 -->
+  <line x1="200" y1="320" x2="450" y2="320" stroke="#6366f1" stroke-width="12" stroke-linecap="round"/>
+  <line x1="200" y1="360" x2="550" y2="360" stroke="#6366f1" stroke-width="12" stroke-linecap="round"/>
+  <line x1="200" y1="400" x2="380" y2="400" stroke="#6366f1" stroke-width="12" stroke-linecap="round"/>
+  <line x1="200" y1="440" x2="480" y2="440" stroke="#8b5cf6" stroke-width="12" stroke-linecap="round"/>
+  
+  <!-- 작은 말풍선들의 텍스트 -->
+  <line x1="540" y1="165" x2="640" y2="165" stroke="#a855f7" stroke-width="8" stroke-linecap="round"/>
+  <line x1="540" y1="185" x2="660" y2="185" stroke="#a855f7" stroke-width="8" stroke-linecap="round"/>
+  <line x1="540" y1="205" x2="600" y2="205" stroke="#a855f7" stroke-width="8" stroke-linecap="round"/>
+  
+  <line x1="135" y1="615" x2="210" y2="615" stroke="#c084fc" stroke-width="6" stroke-linecap="round"/>
+  <line x1="135" y1="635" x2="235" y2="635" stroke="#c084fc" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- 중앙 하단 로고 텍스트 -->
+  <text x="512" y="820" 
+        font-family="Arial, sans-serif" 
+        font-size="80" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="#6366f1">TalkTalk</text>
+  
+  <!-- 장식 요소들 -->
+  <circle cx="750" cy="750" r="12" fill="#e0e7ff" opacity="0.8"/>
+  <circle cx="780" cy="720" r="8" fill="#e0e7ff" opacity="0.6"/>
+  <circle cx="200" cy="150" r="10" fill="#e0e7ff" opacity="0.7"/>
+  <circle cx="170" cy="120" r="6" fill="#e0e7ff" opacity="0.5"/>
+  <circle cx="850" cy="200" r="8" fill="#e0e7ff" opacity="0.6"/>
+  <circle cx="80" cy="800" r="10" fill="#e0e7ff" opacity="0.7"/>
+</svg>
