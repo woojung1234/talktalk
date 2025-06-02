@@ -1,0 +1,129 @@
+<svg viewBox="0 0 1284 2778" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 그라데이션 -->
+  <defs>
+    <linearGradient id="splashBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9333ea;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 말풍선 그라데이션 -->
+    <linearGradient id="bubbleWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95" />
+      <stop offset="100%" style="stop-color:#f8fafc;stop-opacity:0.9" />
+    </linearGradient>
+    
+    <!-- 글로우 효과 -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- 부드러운 그림자 -->
+    <filter id="softShadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  
+  <!-- 배경 -->
+  <rect width="1284" height="2778" fill="url(#splashBgGradient)"/>
+  
+  <!-- 배경 장식 원들 (부드러운 효과) -->
+  <circle cx="200" cy="400" r="150" fill="white" opacity="0.05"/>
+  <circle cx="1000" cy="600" r="120" fill="white" opacity="0.03"/>
+  <circle cx="300" cy="2200" r="180" fill="white" opacity="0.04"/>
+  <circle cx="950" cy="2300" r="100" fill="white" opacity="0.02"/>
+  
+  <!-- 중앙 메인 영역 -->
+  <g transform="translate(642, 1389)">
+    
+    <!-- 큰 중앙 말풍선 -->
+    <path d="M-280 -150 C-280 -190, -240 -230, -200 -230 L200 -230 C240 -230, 280 -190, 280 -150 L280 50 C280 90, 240 130, 200 130 L-100 130 L-140 180 L-140 130 L-200 130 C-240 130, -280 90, -280 50 Z" 
+          fill="url(#bubbleWhite)" 
+          filter="url(#softShadow)"
+          stroke="#e2e8f0" 
+          stroke-width="2"/>
+    
+    <!-- 왼쪽 작은 말풍선 -->
+    <path d="M-450 100 C-450 80, -435 65, -415 65 L-325 65 C-305 65, -290 80, -290 100 L-290 140 C-290 160, -305 175, -325 175 L-375 175 L-415 200 L-415 175 C-435 175, -450 160, -450 140 Z" 
+          fill="url(#bubbleWhite)" 
+          filter="url(#softShadow)"
+          stroke="#e2e8f0" 
+          stroke-width="2"/>
+    
+    <!-- 오른쪽 작은 말풍선 -->
+    <path d="M290 -300 C290 -315, 300 -325, 315 -325 L395 -325 C410 -325, 420 -315, 420 -300 L420 -265 C420 -250, 410 -240, 395 -240 L340 -240 L315 -220 L315 -240 C300 -240, 290 -250, 290 -265 Z" 
+          fill="url(#bubbleWhite)" 
+          filter="url(#softShadow)"
+          stroke="#e2e8f0" 
+          stroke-width="2"/>
+    
+    <!-- 메인 말풍선 안의 텍스트 라인들 -->
+    <line x1="-200" y1="-100" x2="100" y2="-100" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+    <line x1="-200" y1="-60" x2="180" y2="-60" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+    <line x1="-200" y1="-20" x2="50" y2="-20" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+    <line x1="-200" y1="20" x2="150" y2="20" stroke="#8b5cf6" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- 작은 말풍선들 안의 텍스트 -->
+    <line x1="-400" y1="110" x2="-330" y2="110" stroke="#a855f7" stroke-width="6" stroke-linecap="round"/>
+    <line x1="-400" y1="130" x2="-350" y2="130" stroke="#a855f7" stroke-width="6" stroke-linecap="round"/>
+    
+    <line x1="320" y1="-290" x2="380" y2="-290" stroke="#c084fc" stroke-width="5" stroke-linecap="round"/>
+    <line x1="320" y1="-275" x2="390" y2="-275" stroke="#c084fc" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 로고 텍스트 (중앙 하단) -->
+  <text x="642" y="1800" 
+        font-family="Arial, sans-serif" 
+        font-size="120" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="white" 
+        filter="url(#glow)">TalkTalk</text>
+  
+  <!-- 서브 텍스트 -->
+  <text x="642" y="1900" 
+        font-family="Arial, sans-serif" 
+        font-size="36" 
+        font-weight="300" 
+        text-anchor="middle" 
+        fill="white" 
+        opacity="0.9">세대별 대화 주제 생성 AI</text>
+  
+  <!-- 하단 장식 점들 -->
+  <circle cx="542" cy="2000" r="8" fill="white" opacity="0.6"/>
+  <circle cx="572" cy="2000" r="8" fill="white" opacity="0.4"/>
+  <circle cx="602" cy="2000" r="8" fill="white" opacity="0.3"/>
+  <circle cx="682" cy="2000" r="8" fill="white" opacity="0.3"/>
+  <circle cx="712" cy="2000" r="8" fill="white" opacity="0.4"/>
+  <circle cx="742" cy="2000" r="8" fill="white" opacity="0.6"/>
+  
+  <!-- 부드러운 상단 장식 요소들 -->
+  <g opacity="0.1">
+    <circle cx="150" cy="200" r="4" fill="white"/>
+    <circle cx="1100" cy="300" r="6" fill="white"/>
+    <circle cx="200" cy="500" r="3" fill="white"/>
+    <circle cx="1000" cy="400" r="5" fill="white"/>
+    <circle cx="100" cy="800" r="4" fill="white"/>
+    <circle cx="1150" cy="700" r="3" fill="white"/>
+  </g>
+  
+  <!-- 하단 장식 요소들 -->
+  <g opacity="0.1">
+    <circle cx="200" cy="2400" r="5" fill="white"/>
+    <circle cx="1000" cy="2500" r="4" fill="white"/>
+    <circle cx="400" cy="2600" r="3" fill="white"/>
+    <circle cx="800" cy="2650" r="6" fill="white"/>
+    <circle cx="150" cy="2550" r="4" fill="white"/>
+    <circle cx="1100" cy="2600" r="3" fill="white"/>
+  </g>
+  
+  <!-- 미묘한 광선 효과 -->
+  <g opacity="0.03">
+    <line x1="642" y1="0" x2="642" y2="2778" stroke="white" stroke-width="2"/>
+    <line x1="0" y1="1389" x2="1284" y2="1389" stroke="white" stroke-width="1"/>
+  </g>
+</svg>
