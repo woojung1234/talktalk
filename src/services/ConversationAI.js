@@ -1,32 +1,6 @@
 import axios from 'axios';
-import Constants from 'expo-constants';
+import { OPENAI_API_KEY } from '@env';
 
-// 환경변수에서 OpenAI API 키 가져오기 (여러 방법 시도)
-const getApiKey = () => {
-  // 방법 1: Constants.expoConfig.extra
-  let apiKey = Constants.expoConfig?.extra?.OPENAI_API_KEY;
-  
-  // 방법 2: Constants.manifest.extra (구버전 호환)
-  if (!apiKey) {
-    apiKey = Constants.manifest?.extra?.OPENAI_API_KEY;
-  }
-  
-  // 방법 3: process.env (직접 접근)
-  if (!apiKey) {
-    apiKey = process.env.OPENAI_API_KEY;
-  }
-  
-  // 디버깅용 로그
-  console.log('🔑 API Key 로딩 상태:');
-  console.log('Constants.expoConfig?.extra:', Constants.expoConfig?.extra);
-  console.log('Constants.manifest?.extra:', Constants.manifest?.extra);
-  console.log('process.env.OPENAI_API_KEY:', process.env.OPENAI_API_KEY);
-  console.log('최종 API Key:', apiKey ? `${apiKey.substring(0, 7)}...` : 'NOT FOUND');
-  
-  return apiKey;
-};
-
-const OPENAI_API_KEY = getApiKey();
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 class ConversationAI {
@@ -35,6 +9,7 @@ class ConversationAI {
     
     // 초기화 시 API 키 상태 로그
     console.log('💡 ConversationAI 초기화됨');
+    console.log('🔑 @env에서 로드된 API Key:', this.apiKey ? `${this.apiKey.substring(0, 7)}...` : 'NOT FOUND');
     console.log('API 키 상태:', this.apiKey ? '✅ 설정됨' : '❌ 설정되지 않음');
   }
 
