@@ -4,10 +4,8 @@
     "slug": "talktalk-conversation-ai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.svg",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.svg",
       "resizeMode": "contain",
       "backgroundColor": "#6366f1"
     },
@@ -20,14 +18,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.svg",
         "backgroundColor": "#6366f1"
       },
       "package": "com.woojung1234.talktalk",
       "versionCode": 1,
-      "permissions": ["INTERNET"],
-      "compileSdkVersion": 33,
-      "targetSdkVersion": 33
+      "permissions": ["INTERNET"]
     },
     "web": {
       "bundler": "metro"
