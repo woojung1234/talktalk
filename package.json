@@ -23,7 +23,8 @@
     "expo-constants": "~17.1.6",
     "axios": "^1.7.0",
     "@expo/vector-icons": "^14.0.0",
-    "react-native-animatable": "^1.4.0"
+    "react-native-animatable": "^1.4.0",
+    "react-native-dotenv": "^3.4.11"
   },
   "devDependencies": {
     "@babel/core": "^7.25.0"
