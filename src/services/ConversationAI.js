@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 // OpenAI API 설정
-const OPENAI_API_KEY = 'your_openai_api_key_here'; // 실제 API 키로 교체 필요
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 class ConversationAI {
