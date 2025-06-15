@@ -30,8 +30,7 @@ const ConversationGeneratorScreen = ({ navigation, route }) => {
   ];
 
   const relationshipOptions = [
-    '직장 동료', '상사/부하', '가족', '친구', '처음 만나는 사람', 
-    '비즈니스 파트너', '클라이언트', '선후배', '기타'
+    '직장 동료', '상사/부하', '가족', '친구', '처음 만나는 사람', '선후배', '기타'
   ];
 
   const generateConversation = async () => {
