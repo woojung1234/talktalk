@@ -115,7 +115,6 @@ class ConversationAI {
     "category": "최신 트렌드",
     "title": "구체적인 대화 주제",
     "content": "대화를 시작하는 구체적인 방법과 예시",
-    recommendation: '💬 "요즘 보고 계신 드라마나 예능 있으세요?" 이렇게 시작해보세요!',
     "tips": ["팁1", "팁2", "팁3"],
     "icon": "tv-outline",
     "color": "#3b82f6"

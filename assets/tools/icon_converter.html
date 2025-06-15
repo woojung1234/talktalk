@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkTalk 앱 아이콘 PNG 변환기</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .icon-preview {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .size-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .size-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .size-option:hover {
+            border-color: #6366f1;
+            background: #f0f0ff;
+            transform: translateY(-2px);
+        }
+        .size-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .size-desc {
+            color: #666;
+            font-size: 14px;
+        }
+        button {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .download-area {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .download-link {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .download-link:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        .info {
+            background: #e0f2fe;
+            border-left: 4px solid #0288d1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗣️ TalkTalk 앱 아이콘 변환기</h1>
+        
+        <div class="info">
+            <strong>💡 구글 플레이 콘솔 요구사항:</strong><br>
+            • 형식: PNG 또는 JPEG<br>
+            • 크기: 512x512px (권장)<br>
+            • 최대 파일 크기: 1MB
+        </div>
+
+        <div class="icon-preview">
+            <svg id="originalIcon" width="200" height="200" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <!-- SVG content here -->
+            </svg>
+        </div>
+
+        <div class="size-options">
+            <div class="size-option" onclick="selectSize(512)" data-size="512">
+                <div class="size-title">512×512px</div>
+                <div class="size-desc">구글 플레이 콘솔 권장</div>
+            </div>
+            <div class="size-option" onclick="selectSize(192)" data-size="192">
+                <div class="size-title">192×192px</div>
+                <div class="size-desc">앱 런처 아이콘</div>
+            </div>
+            <div class="size-option" onclick="selectSize(144)" data-size="144">
+                <div class="size-title">144×144px</div>
+                <div class="size-desc">알림 아이콘</div>
+            </div>
+            <div class="size-option" onclick="selectSize(96)" data-size="96">
+                <div class="size-title">96×96px</div>
+                <div class="size-desc">작은 아이콘</div>
+            </div>
+        </div>
+
+        <button onclick="convertToPNG()" id="convertBtn">
+            📱 PNG로 변환하기
+        </button>
+
+        <div class="download-area" id="downloadArea" style="display: none;">
+            <h3>✅ 변환 완료!</h3>
+            <p>아래 링크를 클릭해서 다운로드하세요:</p>
+        </div>
+    </div>
+
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <!-- JavaScript code here -->
+</body>
+</html>

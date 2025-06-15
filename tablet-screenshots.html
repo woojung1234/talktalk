@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkTalk 7인치 태블릿 스크린샷</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .screenshot {
+            width: 1280px;
+            height: 800px;
+            background: #f5f5f5;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            position: relative;
+            margin: 30px auto;
+            transform: scale(0.6);
+        }
+        .status-bar {
+            height: 60px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            font-size: 20px;
+            font-weight: 500;
+        }
+        .header {
+            height: 80px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .back-arrow {
+            margin-right: 30px;
+            font-size: 32px;
+        }
+        .content {
+            padding: 40px;
+            height: calc(100% - 140px);
+            display: flex;
+            gap: 40px;
+        }
+        .left-panel {
+            flex: 1;
+        }
+        .right-panel {
+            flex: 1;
+            border-left: 2px solid #e9ecef;
+            padding-left: 40px;
+        }
+        .main-section {
+            background: linear-gradient(135deg, #10d98b, #06d6a0);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            color: white;
+            display: flex;
+            align-items: center;
+        }
+        .main-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            margin-right: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .main-text h2 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+        }
+        .main-text p {
+            margin: 0;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .section h3 {
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            color: #333;
+        }
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #f8f9fa;
+            margin-bottom: 15px;
+        }
+        .tag-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        .tag {
+            padding: 10px 20px;
+            background: #f1f3f4;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            color: #666;
+        }
+        .tag.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border-left: 6px solid #10d98b;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        .card-icon.blue { background: #4facfe; }
+        .card-icon.green { background: #43e97b; }
+        .card h4 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        .card p {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .tips {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        .tips h5 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .tips li {
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #555;
+        }
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .category-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .category-card.purple { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+        .category-card.pink { background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; }
+        .category-card.blue { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+        .category-card.green { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .category-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 28px;
+        }
+        .category-card p {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .category-card .desc {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+        .hidden { display: none; }
+        .download-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .single-content {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 140px);
+            padding: 40px;
+        }
+        .ai-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .ai-header h2 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+        .ai-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 TalkTalk 7인치 태블릿 스크린샷 (1280×800px)</h1>
+        
+        <div class="info">
+            <strong>📋 구글 플레이 콘솔 요구사항:</strong><br>
+            • 크기: 1280×800px (7인치 태블릿 최적화)<br>
+            • 비율: 16:10 (태블릿 표준)<br>
+            • 형식: PNG<br>
+            • 용도: 구글 플레이 스토어 태블릿 섹션
+        </div>
+
+        <!-- 스크린샷 1: 메인 화면 (태블릿 가로 레이아웃) -->
+        <div class="screenshot" id="screen1">
+            <div class="status-bar">
+                <span>KT 9:52 📶 개표중 📷 •</span>
+                <span>🔇 ⚡ HD 📶 51</span>
+            </div>
+            <div class="header">TalkTalk - AI가 추천하는 세대별 대화 주제</div>
+            <div class="single-content">
+                <h2 style="text-align: center; margin: 30px 0; font-size: 42px; color: #333;">어떤 상황에서 대화하시나요?</h2>
+                <p style="text-align: center; margin-bottom: 40px; font-size: 22px; color: #666;">상황을 선택하면 맞춤형 대화 주제를 추천해드려요</p>
+                
+                <div class="category-grid">
+                    <div class="category-card purple">
+                        <div style="font-size: 50px; margin-bottom: 20px;">👥</div>
+                        <h3>세대별 대화</h3>
+                        <p>20대와 50대 사이의 소통</p>
+                        <div class="desc">다른 세대와 자연스럽게 대화하는 방법을 찾아보세요</div>
+                    </div>
+                    
+                    <div class="category-card pink">
+                        <div style="font-size: 50px; margin-bottom: 20px;">💼</div>
+                        <h3>직장 내 소통</h3>
+                        <p>상사, 동료와의 대화</p>
+                        <div class="desc">업무 환경에서 효과적인 대화 주제를 제안받으세요</div>
+                    </div>
+                    
+                    <div class="category-card blue">
+                        <div style="font-size: 50px; margin-bottom: 20px;">💬</div>
+                        <h3>모임 & 네트워킹</h3>
+                        <p>스몰토크와 첫 만남</p>
+                        <div class="desc">처음 만나는 사람들과의 자연스러운 대화 시작하기</div>
+                    </div>
+                    
+                    <div class="category-card green">
+                        <div style="font-size: 50px; margin-bottom: 20px;">🏠</div>
+                        <h3>가족 간 대화</h3>
+                        <p>부모님, 자녀와의 소통</p>
+                        <div class="desc">가족 구성원들과 더 깊이 있는 대화를 나누어보세요</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 스크린샷 2: 대화 주제 생성 화면 (분할 레이아웃) -->
+        <div class="screenshot hidden" id="screen2">
+            <div class="status-bar">
+                <span>KT 9:54 📶 개표중 🖨️ •</span>
+                <span>🔇 ⚡ HD 📶 50</span>
+            </div>
+            <div class="header">
+                <span class="back-arrow">←</span>
+                대화 주제 생성
+            </div>
+            <div class="content">
+                <div class="left-panel">
+                    <div class="main-section">
+                        <div class="main-icon">🏠</div>
+                        <div class="main-text">
+                            <h2>가족 간 대화</h2>
+                            <p>부모님, 자녀와의 소통</p>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h3>기본 정보</h3>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">나의 나이</label>
+                        <input type="text" class="input-field" placeholder="예: 25" value="25">
+                        
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">상대방의 나이 (추정)</label>
+                        <input type="text" class="input-field" placeholder="예: 45" value="45">
+                    </div>
+
+                    <div class="section">
+                        <h3>관계</h3>
+                        <div class="tag-group">
+                            <div class="tag">직장 동료</div>
+                            <div class="tag active">상사/부하</div>
+                            <div class="tag">가족</div>
+                            <div class="tag">친구</div>
+                            <div class="tag">처음</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-panel">
+                    <div class="section">
+                        <h3>대화 분위기</h3>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon green">😊</div>
+                                <h4>캐주얼한 대화</h4>
+                            </div>
+                            <p>편안하고 자연스러운 분위기에서 진행하는 대화입니다.</p>
+                            
+                            <div class="tips">
+                                <h5>💡 대화 팁</h5>
+                                <ul>
+                                    <li>좋았던 장면이나 캐릭터를 공유해보세요.</li>
+                                    <li>추천할 만한 작품이 있다면 이야기해보세요.</li>
+                                    <li>후기로 보고 싶은 작품에 대해서도 이야기해보세요.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon blue">🏢</div>
+                                <h4>전문적인 대화</h4>
+                            </div>
+                            <p>업무나 전문적인 주제에 대한 깊이 있는 토론입니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 스크린샷 3: 추천 대화 주제 화면 -->
+        <div class="screenshot hidden" id="screen3">
+            <div class="status-bar">
+                <span>KT 9:54 📶 개표중 🖨️ •</span>
+                <span>🔇 ⚡ HD 📶 50</span>
+            </div>
+            <div class="header">
+                <span class="back-arrow">←</span>
+                추천 대화 주제
+            </div>
+            <div class="content">
+                <div class="left-panel">
+                    <div style="background: #f0f8ff; padding: 25px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
+                        <p style="margin: 0; font-size: 18px; color: #333;">최근에 본 영화나 드라마에 대해 이야기해보며 서로의 취향을 알아보세요.</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon blue">💬</div>
+                            <h4>최신 트렌드</h4>
+                        </div>
+                        <h4 style="color: #333; margin: 20px 0 15px 0; font-size: 20px;">요즘 인기 있는 취미</h4>
+                        <p>최근 시작한 취미가 있나요? 요즘 어떤 취미가 유행하는지 이야기해보면 좋을 것 같아요.</p>
+                        
+                        <div class="tips">
+                            <h5>💡 대화 팁</h5>
+                            <ul>
+                                <li>상대방의 취미에 관심을 가져보세요.</li>
+                                <li>서로의 취미를 공유해보세요.</li>
+                                <li>취미를 통해 연결될 수 있는 점을 찾아보세요.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-panel">
+                    <div class="ai-header">
+                        <h2>📅 최근의 즐거운 일</h2>
+                        <p>최근에 있었던 즐거운 일이나 특별한 순간에 대해 이야기해보세요.</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon green">🏡</div>
+                            <h4>일상</h4>
+                        </div>
+                        <p>최근에 있었던 즐거운 일이나 특별한 순간에 대해 이야기해보세요.</p>
+                        
+                        <div class="tips">
+                            <h5>💡 대화 팁</h5>
+                            <ul>
+                                <li>공감적인 이야기로 분위기를 만들어보세요.</li>
+                                <li>상대방의 이야기에 공감해보세요.</li>
+                                <li>서로의 소소한 행복을 나누어보세요.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 스크린샷 4: AI 추천 대화 주제 목록 -->
+        <div class="screenshot hidden" id="screen4">
+            <div class="status-bar">
+                <span>KT 9:53 📶 개표중 🖨️ •</span>
+                <span>🔇 ⚡ HD 📶 51</span>
+            </div>
+            <div class="header">
+                <span class="back-arrow">←</span>
+                추천 대화 주제
+            </div>
+            <div class="content">
+                <div class="left-panel">
+                    <div class="ai-header">
+                        <h2>🤖 AI 추천 대화 주제 (57개)</h2>
+                        <p>25세 ↔ 30세 | 처음 만나는 사람 | friendly 분위기</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon blue">💬</div>
+                            <h4>요즘 인기 있는 취미</h4>
+                        </div>
+                        <p>최근 시작한 취미가 있나요? 요즘 어떤 취미가 유행하는지 이야기해보면 좋을 것 같아요.</p>
+                        
+                        <div class="tips">
+                            <h5>💡 대화 팁</h5>
+                            <ul>
+                                <li>상대방의 취미에 관심을 가져보세요.</li>
+                                <li>서로의 취미를 공유해보세요.</li>
+                                <li>취미를 통해 연결될 수 있는 점을 찾아보세요.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon green">🚌</div>
+                            <h4>가고 싶은 여행지</h4>
+                        </div>
+                        <p>최근에 다녀온 여행이나 가고 싶은 여행지에 대해 이야기해보세요.</p>
+                        
+                        <div class="tips">
+                            <h5>💡 대화 팁</h5>
+                            <ul>
+                                <li>여행의 추억을 나누어보세요.</li>
+                                <li>여행지의 음식이나 문화에 대해 이야기해보세요.</li>
+                                <li>서로의 여행 스타일을 비교해보세요.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon blue">📚</div>
+                            <h4>최근에 본 영화나 드라마</h4>
+                        </div>
+                        <p>최근에 인상 깊게 본 영화나 드라마가 있다면 추천해보세요.</p>
+                        
+                        <div class="tips">
+                            <h5>💡 대화 팁</h5>
+                            <ul>
+                                <li>스포일러 없이 재미있는 부분을 소개해보세요.</li>
+                                <li>서로의 장르 취향을 비교해보세요.</li>
+                                <li>함께 볼 만한 작품을 추천해보세요.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <h3>다운로드할 스크린샷 선택:</h3>
+            <button class="download-btn" onclick="showScreen(1)">1. 메인 화면</button>
+            <button class="download-btn" onclick="showScreen(2)">2. 대화 주제 생성</button>
+            <button class="download-btn" onclick="showScreen(3)">3. 추천 대화 주제</button>
+            <button class="download-btn" onclick="showScreen(4)">4. AI 추천 목록</button>
+            <br><br>
+            <button class="download-btn" onclick="downloadScreenshot()" style="background: linear-gradient(135deg, #059669, #047857); font-size: 18px; padding: 20px 40px;">
+                📥 현재 화면 PNG 다운로드 (1280×800px)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 1;
+
+        function showScreen(num) {
+            // 모든 스크린 숨기기
+            for(let i = 1; i <= 4; i++) {
+                document.getElementById(`screen${i}`).classList.add('hidden');
+            }
+            
+            // 선택된 스크린 보이기
+            document.getElementById(`screen${num}`).classList.remove('hidden');
+            currentScreen = num;
+        }
+
+        function downloadScreenshot() {
+            // html2canvas 사용을 위한 대안으로 SVG 캡처 방식 사용
+            const screenshot = document.getElementById(`screen${currentScreen}`);
+            
+            // 캔버스 생성
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 7인치 태블릿 크기 설정
+            canvas.width = 1280;
+            canvas.height = 800;
+            
+            // DOM을 캔버스로 변환하는 간단한 방법
+            html2canvas(screenshot, {
+                canvas: canvas,
+                width: 1280,
+                height: 800,
+                scale: 1,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#f5f5f5'
+            }).then(function(canvas) {
+                // PNG로 다운로드
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `talktalk_tablet_${currentScreen}_1280x800.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    alert(`✅ 태블릿 스크린샷 ${currentScreen}이 다운로드되었습니다!\\n크기: 1280×800px (7인치 태블릿용)`);
+                }, 'image/png');
+            }).catch(function(error) {
+                console.error('캡처 실패:', error);
+                alert('스크린샷 캡처에 실패했습니다. 브라우저에서 우클릭 → "다른 이름으로 저장"을 시도해보세요.');
+            });
+        }
+
+        // html2canvas 라이브러리 로드
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.onerror = function() {
+            console.log('html2canvas 로드 실패 - 대안 방법 사용');
+        };
+        document.head.appendChild(script);
+
+        // 초기 화면 설정
+        showScreen(1);
+    </script>
+</body>
+</html>
