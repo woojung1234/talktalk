@@ -3,7 +3,7 @@ import WeatherService from './WeatherService';
 class UnifiedConversationService {
   constructor(apiKey, weatherService) {
     this.apiKey = apiKey;
-    this.weatherService = weatherService;
+    this.weatherService = weatherService; 
   }
 
   async generateSingleConversationTopic(type, context = {}) {
@@ -23,6 +23,44 @@ class UnifiedConversationService {
       console.error(`[${type}] 대화 주제 생성 중 오류:`, error);
       return this.getSingleFallbackTopic(type);
     }
+  }
+  
+  /**
+   * [수정됨] 날씨 기반 대화 주제 프롬프트를 대폭 개선합니다.
+   */
+  async generateSingleWeatherTopic(context) {
+    const weather = context.weather || await this.weatherService.getCurrentWeather(context.city || '전주');
+    
+    // 시스템 메시지에 뻔한 제안을 피하라는 요구사항 추가
+    const systemMessage = `당신은 날씨를 활용한 대화 주제를 제안하는 매우 창의적이고 재미있는 전문가입니다. 
+    매번 똑같은 제안, 단순하고 뻔한 제안은 반드시 피해주세요.
+    현재 날씨와 시간에 어울리는, 특히 밤에 별자리만 추천하는 것을 자제하고, 시간보다 날씨에 더 집중한 독창적이고 구체적인 활동이나 대화를 제안해야 합니다.
+    반드시 지정된 JSON 형식으로만 답변해야 합니다. 다른 설명은 절대 추가하지 마세요.`;
+
+    // 프롬프트에 '현재 시간' 정보를 추가하여 맥락을 강화
+    const now = new Date();
+    const currentTime = `${now.getHours()}시 ${now.getMinutes()}분`;
+
+    const prompt = `
+현재 정보:
+- 지역: ${context.city || '전주'}
+- 현재 시간: ${currentTime}
+- 현재 날씨:
+  - 온도: ${weather.temperature}°C
+  - 하늘 상태: ${this.getSkyDescription(weather.sky)}
+  - 습도: ${weather.humidity || 50}%
+
+이 날씨와 시간에 가장 잘 어울리는, 참신하고 구체적인 대화 주제 1개를 아래 JSON 형식에 맞춰 생성해주세요:
+\`\`\`json
+{
+  "category": "현재 날씨와 시간을 고려한 센스있는 카테고리",
+  "example": "사람들이 바로 사용할 수 있는, 독창적이고 구체적인 활동 제안 또는 대화 예시 문장 50자 이내, 친근한 분위기,
+  "tip": "이 제안을 할 때의 분위기나 함께하면 좋을 것에 대한 팁",
+  "icon": "상황에 가장 잘 맞는 이모지 1개 (예: 🌅, ☔️, ❄️ 등)"
+}
+\`\`\`
+`;
+    return await this.callGPTAPI(systemMessage, prompt, 'weather');
   }
 
   async generateSingleLoveTopic(context) {
@@ -59,18 +97,11 @@ class UnifiedConversationService {
   }
 
   async generateSingleUnifiedTopic(context) {
-    const { relationship = '친구', situation = '일상적인 만남', userAge = '20대', targetAge = '20대', mood = 'casual' } = context;
+    const { relationship = '', situation = '', userAge = '', targetAge = '', mood = 'casual' } = context;
     const moodMap = { casual: '편안하고 친근한', professional: '전문적이고 정중한', friendly: '따뜻하고 우호적인', respectful: '예의 바르고 공손한' };
     const systemMessage = `당신은 다양한 상황과 관계에 맞는 대화 주제를 추천하는 뛰어난 커뮤니케이션 전문가입니다. 상황 정보를 바탕으로, 자연스럽고 흥미로운 대화 주제 1개만 생성해주세요. 반드시 지정된 JSON 형식으로만 답변해야 합니다. 다른 설명은 절대 추가하지 마세요.`;
     const prompt = `대화 상황 정보:\n- 나와 상대의 관계: ${relationship}\n- 구체적인 상황: ${situation}\n- 내 나이대: ${userAge}\n- 상대방 나이대: ${targetAge}\n- 원하는 대화 분위기: ${moodMap[mood] || '편안한'}\n\n이 상황에 가장 적합한 대화 주제 1개를 아래 JSON 형식에 맞춰 생성해주세요:\n\`\`\`json\n{\n  "category": "대화 주제의 카테고리 (예: 최신 기술 트렌드, 주말 계획)",\n  "example": "대화를 바로 시작할 수 있는 구체적인 질문 또는 제안 문장",\n  "tip": "이 주제로 대화를 더 재미있게 이어갈 수 있는 구체적인 팁",\n  "icon": "주제에 맞는 이모지 1개"\n}\n\`\`\``;
     return await this.callGPTAPI(systemMessage, prompt, 'unified');
-  }
-
-  async generateSingleWeatherTopic(context) {
-    const weather = context.weather || await this.weatherService.getCurrentWeather(context.city || '서울');
-    const systemMessage = `당신은 날씨를 활용한 자연스러운 대화 주제를 제안하는 창의적인 전문가입니다. 현재 날씨 정보에 딱 맞는, 센스 있고 마음을 끄는 대화 시작 멘트를 1개만 생성해주세요. 반드시 지정된 JSON 형식으로만 답변해야 합니다. 다른 설명은 절대 추가하지 마세요.`;
-    const prompt = `현재 날씨 정보:\n- 지역: ${context.city || '서울'}\n- 온도: ${weather.temperature}°C\n- 하늘 상태: ${this.getSkyDescription(weather.sky)}\n- 1시간 강수량: ${weather.precipitation || 0}mm\n- 습도: ${weather.humidity || 50}%\n\n이 날씨에 가장 적합한 대화 주제 1개를 아래 JSON 형식에 맞춰 생성해주세요:\n\`\`\`json\n{\n  "category": "날씨를 나타내는 한두 단어의 카테고리 (예: 쨍쨍한 오후, 비 내리는 저녁)",\n  "example": "사람들이 바로 사용할 수 있는 자연스럽고 감성적인 대화 예시 문장",\n  "tip": "이 대화를 사용할 때 상대방의 반응을 유도할 수 있는 구체적인 팁",\n  "icon": "날씨에 맞는 이모지 1개 (☀️, 🌧️, ☁️, ❄️, 🌤️, 💧, 💨 등)"\n}\n\`\`\``;
-    return await this.callGPTAPI(systemMessage, prompt, 'weather');
   }
 
   async callGPTAPI(systemMessage, prompt, type) {
@@ -82,7 +113,7 @@ class UnifiedConversationService {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemMessage }, { role: 'user', content: prompt }], max_tokens: 500, temperature: 0.8, response_format: { type: "json_object" } }),
+        body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemMessage }, { role: 'user', content: prompt }], max_tokens: 500, temperature: 0.9, response_format: { type: "json_object" } }),
       });
       if (!response.ok) {
         const errorBody = await response.json();
