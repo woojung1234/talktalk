@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,200 +7,191 @@ import {
   SafeAreaView,
   ScrollView,
   Share,
-  Clipboard,
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
-import ConversationAI from '../services/ConversationAI';
+import UnifiedConversationService from '../services/UnifiedConversationService';
 
 const ResultScreen = ({ navigation, route }) => {
   const { conversationData } = route.params;
-  const [topics, setTopics] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [currentTopic, setCurrentTopic] = useState(conversationData.generatedTopic);
+  
+  const conversationService = new UnifiedConversationService(process.env.OPENAI_API_KEY);
 
-  useEffect(() => {
-    generateTopics();
-  }, []);
-
-  const generateTopics = async () => {
-    console.log('🎬 ResultScreen generateTopics 시작');
-    setIsLoading(true);
+  const generateNewTopic = async () => {
+    setIsGenerating(true);
     
     try {
-      // 실제 GPT API 호출
-      console.log('📞 ConversationAI.generateConversationTopics 호출 중...');
-      const generatedTopics = await ConversationAI.generateConversationTopics(conversationData);
+      const newTopic = await conversationService.generateSingleConversationTopic('unified', {
+        relationship: conversationData.relationship || '친구',
+        situation: conversationData.context || '일상 대화',
+        userAge: conversationData.userAge,
+        targetAge: conversationData.targetAge,
+        mood: conversationData.mood
+      });
       
-      console.log('📦 받은 주제 데이터:', generatedTopics);
-      console.log('📊 주제 개수:', generatedTopics.length);
-      console.log('🔍 첫 번째 주제:', generatedTopics[0]);
-      
-      setTopics(generatedTopics);
-      console.log('✅ setTopics 완료');
-      
+      setCurrentTopic(newTopic);
     } catch (error) {
-      console.error('❌ 대화 주제 생성 오류:', error);
-      Alert.alert(
-        '오류', 
-        'AI 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
-        [
-          { text: '기본 주제 보기', onPress: () => loadFallbackTopics() },
-          { text: '다시 시도', onPress: () => generateTopics() }
-        ]
-      );
+      Alert.alert('오류', '새로운 대화 주제 생성 중 오류가 발생했습니다.');
     } finally {
-      setIsLoading(false);
-      console.log('🏁 generateTopics 완료, isLoading:', false);
+      setIsGenerating(false);
     }
   };
 
-  const loadFallbackTopics = () => {
-    console.log('🔄 기본 주제 로드');
-    const fallbackTopics = ConversationAI.getFallbackTopics(conversationData);
-    setTopics(fallbackTopics);
-    console.log('📝 기본 주제 설정 완료:', fallbackTopics.length);
-  };
-
-  const copyToClipboard = async (text) => {
-    await Clipboard.setStringAsync(text);
-    Alert.alert('복사 완료', '클립보드에 복사되었습니다.');
-  };
-
-  const shareContent = async (topic) => {
+  const shareConversation = async () => {
     try {
+      const shareContent = `TalkTalk 추천 대화\n\n💬 ${currentTopic.category}\n"${currentTopic.example}"\n\n💡 팁: ${currentTopic.tip}`;
+      
       await Share.share({
-        message: `💬 ${topic.title}\n\n${topic.content}\n\n💡 대화 팁:\n${topic.tips.map(tip => `• ${tip}`).join('\n')}\n\n📱 TalkTalk 앱에서 더 많은 대화 주제를 만나보세요!`,
-        title: 'TalkTalk 대화 주제 공유'
+        message: shareContent,
+        title: 'TalkTalk 추천 대화',
       });
     } catch (error) {
-      console.log('공유 오류:', error);
+      console.log('Share error:', error);
     }
   };
 
-  const renderTopicCard = (topic, index) => {
-    console.log(`🎨 렌더링 중: 주제 ${index + 1}`, topic.title);
-    
-    return (
-      <Animatable.View
-        key={topic.id}
-        animation="fadeInUp"
-        delay={index * 200}
-        style={styles.topicCard}
-      >
-        <View style={styles.topicHeader}>
-          <View style={styles.topicHeaderLeft}>
-            <View style={[styles.iconContainer, { backgroundColor: topic.color + '20' }]}>
-              <Ionicons name={topic.icon} size={24} color={topic.color} />
-            </View>
-            <View style={styles.topicHeaderText}>
-              <Text style={styles.topicCategory}>{topic.category}</Text>
-              <Text style={styles.topicTitle}>{topic.title}</Text>
-            </View>
-          </View>
-          <View style={styles.topicActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => copyToClipboard(`${topic.title}\n\n${topic.content}`)}
-            >
-              <Ionicons name="copy-outline" size={20} color="#64748b" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => shareContent(topic)}
-            >
-              <Ionicons name="share-outline" size={20} color="#64748b" />
-            </TouchableOpacity>
-          </View>
+  const renderUserInfo = () => (
+    <Animatable.View animation="fadeIn" delay={200} style={styles.infoCard}>
+      <Text style={styles.infoTitle}>입력한 정보</Text>
+      <View style={styles.infoGrid}>
+        <View style={styles.infoItem}>
+          <Ionicons name="person-outline" size={16} color="#64748b" />
+          <Text style={styles.infoText}>나: {conversationData.userAge}세</Text>
         </View>
+        <View style={styles.infoItem}>
+          <Ionicons name="people-outline" size={16} color="#64748b" />
+          <Text style={styles.infoText}>상대: {conversationData.targetAge}세</Text>
+        </View>
+        {conversationData.relationship && (
+          <View style={styles.infoItem}>
+            <Ionicons name="heart-outline" size={16} color="#64748b" />
+            <Text style={styles.infoText}>관계: {conversationData.relationship}</Text>
+          </View>
+        )}
+        <View style={styles.infoItem}>
+          <Ionicons name="happy-outline" size={16} color="#64748b" />
+          <Text style={styles.infoText}>분위기: {conversationData.mood}</Text>
+        </View>
+      </View>
+      {conversationData.context && (
+        <View style={styles.contextContainer}>
+          <Text style={styles.contextLabel}>상황:</Text>
+          <Text style={styles.contextText}>{conversationData.context}</Text>
+        </View>
+      )}
+    </Animatable.View>
+  );
 
-        <Text style={styles.topicContent}>{topic.content}</Text>
+  const renderConversationTopic = () => {
+    if (!currentTopic) return null;
 
-        <View style={styles.tipsContainer}>
-          <Text style={styles.tipsTitle}>💡 대화 팁</Text>
-          {topic.tips.map((tip, tipIndex) => (
-            <Text key={tipIndex} style={styles.tipText}>• {tip}</Text>
-          ))}
+    return (
+      <Animatable.View animation="fadeInUp" delay={300} style={styles.topicCard}>
+        <View style={styles.topicHeader}>
+          <View style={styles.topicTitleContainer}>
+            <Text style={styles.topicIcon}>{currentTopic.icon}</Text>
+            <Text style={styles.topicCategory}>{currentTopic.category}</Text>
+          </View>
+          <TouchableOpacity onPress={shareConversation} style={styles.shareButton}>
+            <Ionicons name="share-outline" size={20} color="#667eea" />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.topicContent}>
+          <Text style={styles.topicLabel}>💬 추천 대화</Text>
+          <Text style={styles.topicExample}>"{currentTopic.example}"</Text>
+          
+          <Text style={styles.tipLabel}>💡 사용 팁</Text>
+          <Text style={styles.topicTip}>{currentTopic.tip}</Text>
         </View>
       </Animatable.View>
     );
   };
 
-  console.log('🖼️ ResultScreen 렌더링 중');
-  console.log('⏳ isLoading:', isLoading);
-  console.log('📋 topics 길이:', topics.length);
-
-  if (isLoading) {
-    console.log('⌛ 로딩 화면 표시');
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Animatable.View
-            animation="pulse"
-            iterationCount="infinite"
-            style={styles.loadingIcon}
-          >
-            <Ionicons name="sparkles" size={48} color="#667eea" />
-          </Animatable.View>
-          <Text style={styles.loadingText}>AI가 맞춤 대화 주제를 생성하고 있어요...</Text>
-          <Text style={styles.loadingSubtext}>
-            {conversationData.userAge}세와 {conversationData.targetAge}세 간의 {conversationData.mood} 대화를 준비 중
+  const renderActionButtons = () => (
+    <Animatable.View animation="fadeInUp" delay={500} style={styles.actionContainer}>
+      <TouchableOpacity 
+        style={[styles.actionButton, styles.generateButton]}
+        onPress={generateNewTopic}
+        disabled={isGenerating}
+      >
+        <LinearGradient
+          colors={isGenerating ? ['#94a3b8', '#64748b'] : ['#667eea', '#764ba2']}
+          style={styles.buttonGradient}
+        >
+          <Ionicons 
+            name={isGenerating ? "hourglass-outline" : "refresh-outline"} 
+            size={20} 
+            color="white" 
+          />
+          <Text style={styles.buttonText}>
+            {isGenerating ? '생성 중...' : '새로운 주제 생성'}
           </Text>
+        </LinearGradient>
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={[styles.actionButton, styles.homeButton]}
+        onPress={() => navigation.navigate('Home')}
+      >
+        <View style={styles.homeButtonContent}>
+          <Ionicons name="home-outline" size={20} color="#667eea" />
+          <Text style={styles.homeButtonText}>홈으로 돌아가기</Text>
         </View>
-      </SafeAreaView>
-    );
-  }
+      </TouchableOpacity>
+    </Animatable.View>
+  );
 
-  console.log('🎯 메인 화면 표시, 주제 개수:', topics.length);
+  const renderTips = () => (
+    <Animatable.View animation="fadeInUp" delay={600} style={styles.tipsContainer}>
+      <Text style={styles.tipsTitle}>📚 대화 성공 꿀팁</Text>
+      
+      <View style={styles.tipItem}>
+        <Text style={styles.tipNumber}>1</Text>
+        <Text style={styles.tipText}>상대방의 답변에 진심으로 관심을 보이세요</Text>
+      </View>
+      
+      <View style={styles.tipItem}>
+        <Text style={styles.tipNumber}>2</Text>
+        <Text style={styles.tipText}>자연스럽게 자신의 이야기도 조금씩 섬어주세요</Text>
+      </View>
+      
+      <View style={styles.tipItem}>
+        <Text style={styles.tipNumber}>3</Text>
+        <Text style={styles.tipText}>반응이 좋지 않아도 다른 주제로 자연스럽게 넘어가세요</Text>
+      </View>
+      
+      <View style={styles.tipItem}>
+        <Text style={styles.tipNumber}>4</Text>
+        <Text style={styles.tipText}>대화는 주고받는 것이니 질문만 하지 말고 균형을 맞춰주세요</Text>
+      </View>
+    </Animatable.View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Animatable.View animation="fadeIn" style={styles.header}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>🤖 AI 추천 대화 주제 ({topics.length}개)</Text>
-            <Text style={styles.summaryText}>
-              {conversationData.userAge}세 ↔ {conversationData.targetAge}세 | {conversationData.relationship || '일반적인 관계'} | {conversationData.mood} 분위기
-            </Text>
-          </View>
-        </Animatable.View>
-
-        <View style={styles.topicsContainer}>
-          {topics.length > 0 ? (
-            topics.map((topic, index) => renderTopicCard(topic, index))
-          ) : (
-            <View style={styles.noTopicsContainer}>
-              <Text style={styles.noTopicsText}>주제를 불러오는 중입니다...</Text>
+        <Animatable.View animation="fadeInDown" style={styles.header}>
+          <LinearGradient
+            colors={conversationData.situation.color}
+            style={styles.headerGradient}
+          >
+            <View style={styles.headerContent}>
+              <Ionicons name={conversationData.situation.icon} size={24} color="white" />
+              <Text style={styles.headerTitle}>추천 대화 주제</Text>
             </View>
-          )}
-        </View>
-
-        <Animatable.View animation="fadeInUp" delay={1000} style={styles.footer}>
-          <TouchableOpacity
-            style={styles.regenerateButton}
-            onPress={generateTopics}
-          >
-            <LinearGradient
-              colors={['#667eea', '#764ba2']}
-              style={styles.buttonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <View style={styles.buttonContent}>
-                <Ionicons name="refresh" size={20} color="white" />
-                <Text style={styles.buttonText}>새로운 AI 주제 생성</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.homeButton}
-            onPress={() => navigation.navigate('Home')}
-          >
-            <Text style={styles.homeButtonText}>홈으로 돌아가기</Text>
-          </TouchableOpacity>
+            <Text style={styles.headerSubtitle}>🤖 AI가 맞춤형 대화를 생성해드렸어요!</Text>
+          </LinearGradient>
         </Animatable.View>
+
+        {renderUserInfo()}
+        {renderConversationTopic()}
+        {renderActionButtons()}
+        {renderTips()}
       </ScrollView>
     </SafeAreaView>
   );
@@ -214,70 +205,87 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  loadingIcon: {
-    marginBottom: 24,
-  },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1e293b',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  loadingSubtext: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
   header: {
-    padding: 20,
+    marginBottom: 20,
   },
-  summaryCard: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+  headerGradient: {
+    padding: 24,
+    paddingTop: 40,
   },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  summaryText: {
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginLeft: 12,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  infoCard: {
+    backgroundColor: 'white',
+    margin: 20,
+    marginBottom: 10,
+    borderRadius: 16,
+    padding: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 16,
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
+    marginBottom: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#64748b',
+    marginLeft: 8,
+  },
+  contextContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  contextLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  contextText: {
     fontSize: 14,
     color: '#64748b',
     lineHeight: 20,
-  },
-  topicsContainer: {
-    paddingHorizontal: 20,
-  },
-  noTopicsContainer: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  noTopicsText: {
-    fontSize: 16,
-    color: '#64748b',
-    textAlign: 'center',
   },
   topicCard: {
     backgroundColor: 'white',
-    marginBottom: 20,
+    margin: 20,
+    marginTop: 10,
     borderRadius: 16,
     padding: 20,
-    elevation: 4,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -285,85 +293,83 @@ const styles = StyleSheet.create({
   },
   topicHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  topicHeaderLeft: {
+  topicTitleContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+  topicIcon: {
+    fontSize: 24,
     marginRight: 12,
   },
-  topicHeaderText: {
-    flex: 1,
-  },
   topicCategory: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  topicTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1e293b',
-    lineHeight: 22,
   },
-  topicActions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
+  shareButton: {
     padding: 8,
-    marginLeft: 4,
   },
   topicContent: {
-    fontSize: 15,
-    color: '#374151',
-    lineHeight: 24,
-    marginBottom: 16,
+    gap: 16,
   },
-  tipsContainer: {
+  topicLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#667eea',
+    marginBottom: 4,
+  },
+  topicExample: {
+    fontSize: 16,
+    color: '#1e293b',
+    fontStyle: 'italic',
     backgroundColor: '#f1f5f9',
     padding: 16,
     borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#667eea',
   },
-  tipsTitle: {
+  tipLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#475569',
-    marginBottom: 8,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    marginBottom: 4,
+    marginTop: 8,
   },
-  tipText: {
-    fontSize: 13,
+  topicTip: {
+    fontSize: 14,
     color: '#64748b',
     lineHeight: 20,
-    marginBottom: 4,
+    backgroundColor: '#fef3c7',
+    padding: 12,
+    borderRadius: 8,
   },
-  footer: {
-    padding: 20,
-    paddingBottom: 40,
+  actionContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
-  regenerateButton: {
+  actionButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  generateButton: {
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   buttonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-  },
-  buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
   },
   buttonText: {
     fontSize: 16,
@@ -372,13 +378,64 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   homeButton: {
-    paddingVertical: 12,
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#667eea',
+  },
+  homeButtonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
   },
   homeButtonText: {
     fontSize: 16,
+    fontWeight: 'bold',
+    color: '#667eea',
+    marginLeft: 8,
+  },
+  tipsContainer: {
+    backgroundColor: 'white',
+    margin: 20,
+    marginTop: 0,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 40,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  tipsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 16,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  tipNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#667eea',
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginRight: 12,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 14,
     color: '#64748b',
-    fontWeight: '500',
+    lineHeight: 20,
   },
 });
 
