@@ -12,6 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
+import UnifiedConversationService from '../services/UnifiedConversationService';
 
 const ConversationGeneratorScreen = ({ navigation, route }) => {
   const { situation } = route.params;
@@ -21,6 +22,8 @@ const ConversationGeneratorScreen = ({ navigation, route }) => {
   const [context, setContext] = useState('');
   const [selectedMood, setSelectedMood] = useState('casual');
   const [isLoading, setIsLoading] = useState(false);
+
+  const conversationService = new UnifiedConversationService(process.env.OPENAI_API_KEY);
 
   const moods = [
     { id: 'casual', label: '캐주얼한', icon: 'happy-outline', color: '#10b981' },
@@ -42,8 +45,14 @@ const ConversationGeneratorScreen = ({ navigation, route }) => {
     setIsLoading(true);
 
     try {
-      // GPT API 호출을 시뮬레이션 (실제로는 여기서 API 호출)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // GPT API 호출로 단일 대화 주제 생성
+      const conversationTopic = await conversationService.generateSingleConversationTopic('unified', {
+        relationship: relationship || '친구',
+        situation: context || '일상 대화',
+        userAge,
+        targetAge,
+        mood: selectedMood
+      });
       
       const conversationData = {
         situation,
@@ -52,6 +61,7 @@ const ConversationGeneratorScreen = ({ navigation, route }) => {
         relationship,
         context,
         mood: selectedMood,
+        generatedTopic: conversationTopic // 단일 주제
       };
 
       navigation.navigate('Result', { conversationData });
@@ -187,16 +197,19 @@ const ConversationGeneratorScreen = ({ navigation, route }) => {
           >
             {isLoading ? (
               <View style={styles.buttonContent}>
-                <Text style={styles.buttonText}>대화 주제 생성 중...</Text>
+                <Ionicons name="hourglass-outline" size={20} color="white" />
+                <Text style={styles.buttonText}>AI가 대화 주제 생성 중...</Text>
               </View>
             ) : (
               <View style={styles.buttonContent}>
                 <Ionicons name="sparkles" size={20} color="white" />
-                <Text style={styles.buttonText}>대화 주제 생성하기</Text>
+                <Text style={styles.buttonText}>AI 대화 주제 생성하기</Text>
               </View>
             )}
           </LinearGradient>
         </TouchableOpacity>
+        
+        <Text style={styles.footerNote}>🤖 AI가 상황에 맞는 맞춤형 대화 주제 1개를 생성해드립니다</Text>
       </Animatable.View>
     </SafeAreaView>
   );
@@ -331,6 +344,7 @@ const styles = StyleSheet.create({
   generateButton: {
     borderRadius: 12,
     overflow: 'hidden',
+    marginBottom: 12,
   },
   disabledButton: {
     opacity: 0.7,
@@ -349,6 +363,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginLeft: 8,
+  },
+  footerNote: {
+    fontSize: 12,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });
 
