@@ -1,13 +1,16 @@
 {
   "name": "talktalk",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "description": "대화가 필요한 모든 순간을 위한 완벽한 가이드",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "start-web": "expo start --web",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build": "expo build",
+    "eject": "expo eject"
   },
   "dependencies": {
     "expo": "~53.0.0",
@@ -30,5 +33,27 @@
   "devDependencies": {
     "@babel/core": "^7.25.0"
   },
+  "keywords": [
+    "conversation",
+    "chat",
+    "social",
+    "weather",
+    "love-coach",
+    "react-native",
+    "expo"
+  ],
+  "author": {
+    "name": "woojung1234",
+    "url": "https://github.com/woojung1234"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/woojung1234/talktalk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/woojung1234/talktalk/issues"
+  },
+  "homepage": "https://github.com/woojung1234/talktalk#readme",
   "private": true
 }
