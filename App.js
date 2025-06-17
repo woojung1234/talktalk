@@ -8,6 +8,8 @@ import { StyleSheet } from 'react-native';
 import HomeScreen from './src/screens/HomeScreen';
 import ConversationGeneratorScreen from './src/screens/ConversationGeneratorScreen';
 import ResultScreen from './src/screens/ResultScreen';
+import WeatherTalkScreen from './src/screens/WeatherTalkScreen';
+import LoveCoachScreen from './src/screens/LoveCoachScreen';
 
 const Stack = createStackNavigator();
 
@@ -49,6 +51,22 @@ export default function App() {
           options={{ 
             title: '추천 대화 주제',
             headerBackTitle: '뒤로'
+          }} 
+        />
+        <Stack.Screen 
+          name="WeatherTalk" 
+          component={WeatherTalkScreen} 
+          options={{ 
+            title: '오늘의 날씨 톡',
+            headerShown: false // 커스텀 헤더 사용
+          }} 
+        />
+        <Stack.Screen 
+          name="LoveCoach" 
+          component={LoveCoachScreen} 
+          options={{ 
+            title: '연애 코치 톡',
+            headerShown: false // 커스텀 헤더 사용
           }} 
         />
       </Stack.Navigator>
