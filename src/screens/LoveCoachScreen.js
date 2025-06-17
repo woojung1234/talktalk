@@ -6,271 +6,242 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Dimensions,
   Alert,
-  Share,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
-import LoveCoachService from '../services/LoveCoachService';
-
-const { width, height } = Dimensions.get('window');
+import UnifiedConversationService from '../services/UnifiedConversationService';
 
 const LoveCoachScreen = ({ navigation }) => {
+  const [conversationTopic, setConversationTopic] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedStage, setSelectedStage] = useState('first_meet');
   const [selectedType, setSelectedType] = useState('icebreaker');
-  const [loveTopics, setLoveTopics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [expandedTopic, setExpandedTopic] = useState(null);
 
-  const loveCoachService = new LoveCoachService();
+  const conversationService = new UnifiedConversationService(process.env.OPENAI_API_KEY);
 
-  const relationshipStages = [
-    { id: 'first_meet', title: '첫 만남', icon: '👋', color: '#10b981' },
-    { id: 'getting_know', title: '알아가는 단계', icon: '🤝', color: '#3b82f6' },
-    { id: 'some', title: '썸 단계', icon: '💕', color: '#f59e0b' },
-    { id: 'dating', title: '연애 단계', icon: '❤️', color: '#ef4444' },
-    { id: 'long_term', title: '장기 연애', icon: '💍', color: '#8b5cf6' }
+  const stages = [
+    { id: 'first_meet', label: '첫 만남', icon: '👋', color: '#10b981' },
+    { id: 'getting_know', label: '알아가기', icon: '🤔', color: '#3b82f6' },
+    { id: 'some', label: '썸 단계', icon: '😊', color: '#f59e0b' },
+    { id: 'dating', label: '연애 중', icon: '💕', color: '#ec4899' },
+    { id: 'long_term', label: '장기 연애', icon: '💍', color: '#8b5cf6' },
   ];
 
-  const conversationTypes = [
-    { id: 'icebreaker', title: '아이스브레이커', icon: 'snow-outline' },
-    { id: 'deep_talk', title: '깊은 대화', icon: 'heart-outline' },
-    { id: 'flirting', title: '플러팅', icon: 'rose-outline' },
-    { id: 'conflict', title: '갈등 해결', icon: 'shield-outline' },
-    { id: 'romance', title: '로맨틱', icon: 'star-outline' }
+  const types = [
+    { id: 'icebreaker', label: '어색함 깨기', icon: 'ice-cream-outline' },
+    { id: 'deep_talk', label: '깊은 대화', icon: 'chatbubble-ellipses-outline' },
+    { id: 'flirting', label: '플러팅', icon: 'heart-outline' },
+    { id: 'conflict', label: '갈등 해결', icon: 'shield-outline' },
+    { id: 'romance', label: '로맨틱', icon: 'rose-outline' },
   ];
 
   useEffect(() => {
-    generateLoveTopics();
+    generateLoveTopic();
   }, [selectedStage, selectedType]);
 
-  const generateLoveTopics = () => {
-    setLoading(true);
+  const generateLoveTopic = async () => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      const topics = loveCoachService.generateLoveTopics(selectedStage, selectedType);
-      setLoveTopics(topics);
+      const topic = await conversationService.generateSingleConversationTopic('love', {
+        stage: selectedStage,
+        type: selectedType
+      });
+      setConversationTopic(topic);
     } catch (error) {
-      console.log('Failed to generate love topics:', error);
+      console.error('Love topic generation failed:', error);
+      setError('대화 주제 생성 중 오류가 발생했습니다.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const renderStageSelector = () => (
-    <View style={styles.stageSelector}>
-      <Text style={styles.selectorTitle}>관계 단계를 선택하세요</Text>
+    <Animatable.View animation="fadeIn" delay={200} style={styles.selectorContainer}>
+      <Text style={styles.selectorTitle}>연애 단계</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stageScroll}>
-        {relationshipStages.map((stage, index) => (
-          <Animatable.View key={stage.id} animation="fadeInRight" delay={index * 100}>
-            <TouchableOpacity
-              style={[
-                styles.stageButton,
-                selectedStage === stage.id && { backgroundColor: stage.color }
-              ]}
-              onPress={() => setSelectedStage(stage.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.stageIcon}>{stage.icon}</Text>
-              <Text style={[
-                styles.stageText,
-                selectedStage === stage.id && styles.stageTextSelected
-              ]}>
-                {stage.title}
-              </Text>
-            </TouchableOpacity>
-          </Animatable.View>
+        {stages.map((stage) => (
+          <TouchableOpacity
+            key={stage.id}
+            style={[
+              styles.stageOption,
+              selectedStage === stage.id && { 
+                backgroundColor: stage.color,
+                borderColor: stage.color 
+              }
+            ]}
+            onPress={() => setSelectedStage(stage.id)}
+          >
+            <Text style={styles.stageEmoji}>{stage.icon}</Text>
+            <Text style={[
+              styles.stageLabel,
+              selectedStage === stage.id && { color: 'white', fontWeight: 'bold' }
+            ]}>
+              {stage.label}
+            </Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
-    </View>
-  );
-
-  const renderTypeSelector = () => (
-    <View style={styles.typeSelector}>
-      <Text style={styles.selectorTitle}>대화 유형을 선택하세요</Text>
-      <View style={styles.typeGrid}>
-        {conversationTypes.map((type, index) => (
-          <Animatable.View key={type.id} animation="fadeInUp" delay={index * 100}>
-            <TouchableOpacity
-              style={[
-                styles.typeButton,
-                selectedType === type.id && styles.typeButtonSelected
-              ]}
-              onPress={() => setSelectedType(type.id)}
-              activeOpacity={0.7}
-            >
-              <Ionicons 
-                name={type.icon} 
-                size={24} 
-                color={selectedType === type.id ? 'white' : '#64748b'} 
-              />
-              <Text style={[
-                styles.typeText,
-                selectedType === type.id && styles.typeTextSelected
-              ]}>
-                {type.title}
-              </Text>
-            </TouchableOpacity>
-          </Animatable.View>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderTopicCard = (topic, index) => (
-    <Animatable.View
-      key={index}
-      animation="fadeInUp"
-      delay={index * 150}
-      style={styles.topicCard}
-    >
-      <TouchableOpacity
-        onPress={() => setExpandedTopic(expandedTopic === index ? null : index)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.topicHeader}>
-          <Text style={styles.topicIcon}>{topic.icon}</Text>
-          <Text style={styles.topicTitle}>{topic.title}</Text>
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelText}>{topic.level}</Text>
-          </View>
-          <Ionicons 
-            name={expandedTopic === index ? "chevron-up" : "chevron-down"} 
-            size={24} 
-            color="#64748b" 
-          />
-        </View>
-      </TouchableOpacity>
-
-      {expandedTopic === index && (
-        <Animatable.View animation="fadeInDown" style={styles.exampleContainer}>
-          {topic.examples.map((example, exampleIndex) => (
-            <TouchableOpacity
-              key={exampleIndex}
-              style={styles.exampleItem}
-              onPress={() => handleExamplePress(example)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.exampleContent}>
-                <Text style={styles.exampleText}>"{example}"</Text>
-              </View>
-              <Ionicons name="share-outline" size={18} color="#94a3b8" />
-            </TouchableOpacity>
-          ))}
-        </Animatable.View>
-      )}
     </Animatable.View>
   );
 
-  const handleExamplePress = async (example) => {
-    try {
-      await Share.share({
-        message: `"${example}"\n\n- TalkTalk 연애 코치에서`,
-        title: '연애 대화 가이드',
-      });
-    } catch (error) {
-      console.log('Share failed:', error);
-    }
-  };
-
-  const renderTipsAndWarnings = () => {
-    if (!loveTopics || !loveTopics.tips) return null;
-
-    return (
-      <View style={styles.adviceContainer}>
-        <Animatable.View animation="fadeInLeft" style={styles.tipsSection}>
-          <View style={styles.adviceHeader}>
-            <Ionicons name="bulb-outline" size={24} color="#10b981" />
-            <Text style={styles.adviceTitle}>💡 단계별 팁</Text>
-          </View>
-          {loveTopics.tips.map((tip, index) => (
-            <View key={index} style={styles.adviceItem}>
-              <Text style={styles.adviceText}>• {tip}</Text>
-            </View>
-          ))}
-        </Animatable.View>
-
-        <Animatable.View animation="fadeInRight" style={styles.warningsSection}>
-          <View style={styles.adviceHeader}>
-            <Ionicons name="warning-outline" size={24} color="#f59e0b" />
-            <Text style={styles.adviceTitle}>⚠️ 주의사항</Text>
-          </View>
-          {loveTopics.warnings.map((warning, index) => (
-            <View key={index} style={styles.adviceItem}>
-              <Text style={styles.adviceText}>• {warning}</Text>
-            </View>
-          ))}
-        </Animatable.View>
+  const renderTypeSelector = () => (
+    <Animatable.View animation="fadeIn" delay={300} style={styles.selectorContainer}>
+      <Text style={styles.selectorTitle}>대화 유형</Text>
+      <View style={styles.typeGrid}>
+        {types.map((type) => (
+          <TouchableOpacity
+            key={type.id}
+            style={[
+              styles.typeOption,
+              selectedType === type.id && styles.selectedTypeOption
+            ]}
+            onPress={() => setSelectedType(type.id)}
+          >
+            <Ionicons 
+              name={type.icon} 
+              size={24} 
+              color={selectedType === type.id ? '#ff6b9d' : '#64748b'} 
+            />
+            <Text style={[
+              styles.typeLabel,
+              selectedType === type.id && { color: '#ff6b9d', fontWeight: 'bold' }
+            ]}>
+              {type.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
+    </Animatable.View>
+  );
+
+  const renderConversationTopic = () => {
+    if (isLoading) {
+      return (
+        <Animatable.View animation="fadeIn" style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#ff6b9d" />
+          <Text style={styles.loadingText}>연애 코치 AI가 맞춤 대화를 생성 중입니다...</Text>
+        </Animatable.View>
+      );
+    }
+
+    if (error) {
+      return (
+        <Animatable.View animation="fadeIn" style={styles.errorContainer}>
+          <Ionicons name="heart-dislike-outline" size={48} color="#ef4444" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={generateLoveTopic}>
+            <Text style={styles.retryButtonText}>다시 시도</Text>
+          </TouchableOpacity>
+        </Animatable.View>
+      );
+    }
+
+    if (!conversationTopic) return null;
+
+    return (
+      <Animatable.View animation="fadeInUp" delay={400} style={styles.topicCard}>
+        <View style={styles.topicHeader}>
+          <Text style={styles.topicIcon}>{conversationTopic.icon}</Text>
+          <Text style={styles.topicCategory}>{conversationTopic.category}</Text>
+        </View>
+        
+        <View style={styles.topicContent}>
+          <Text style={styles.topicLabel}>💬 추천 대화</Text>
+          <Text style={styles.topicExample}>"{conversationTopic.example}"</Text>
+          
+          <Text style={styles.tipLabel}>💡 사용 팁</Text>
+          <Text style={styles.topicTip}>{conversationTopic.tip}</Text>
+        </View>
+      </Animatable.View>
     );
   };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <LinearGradient colors={['#ff6b9d', '#c44569']} style={styles.loadingContainer}>
-          <Animatable.View animation="pulse" iterationCount="infinite">
-            <Text style={styles.loadingText}>연애 코치 가이드 준비 중...</Text>
-          </Animatable.View>
-        </LinearGradient>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={['#ff6b9d', '#c44569']} style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-
-        <Animatable.View animation="fadeInDown" style={styles.headerContent}>
-          <Text style={styles.headerIcon}>💕</Text>
+      {/* Custom Header */}
+      <LinearGradient
+        colors={['#ff6b9d', '#c44569']}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>연애 코치 톡</Text>
-          <Text style={styles.headerSubtitle}>
-            {loveTopics?.stage} - {loveTopics?.type}
-          </Text>
+          <View style={styles.placeholder} />
+        </View>
+        
+        <Animatable.View animation="fadeIn" delay={100} style={styles.headerSubtitle}>
+          <Text style={styles.subtitleText}>AI가 단계별 맞춤 연애 대화를 코칭해드려요</Text>
         </Animatable.View>
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {renderStageSelector()}
         {renderTypeSelector()}
+        
+        <Animatable.View animation="fadeIn" delay={400} style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>🤖 AI 연애 코치 추천</Text>
+          <Text style={styles.sectionDescription}>
+            선택하신 단계와 상황에 가장 적합한 대화법을 추천해드립니다
+          </Text>
+        </Animatable.View>
 
-        {loveTopics && loveTopics.topics && (
-          <Animatable.View animation="fadeIn" delay={300}>
-            <Text style={styles.sectionTitle}>
-              추천 대화 주제 {loveTopics.topics.length}개
-            </Text>
-            <Text style={styles.sectionDescription}>
-              현재 관계 단계에 최적화된 대화법을 제안해드려요
-            </Text>
+        {renderConversationTopic()}
 
-            <View style={styles.topicsContainer}>
-              {loveTopics.topics.map((topic, index) => renderTopicCard(topic, index))}
-            </View>
-          </Animatable.View>
-        )}
-
-        {renderTipsAndWarnings()}
-
-        <Animatable.View animation="fadeInUp" delay={800} style={styles.footer}>
+        <Animatable.View animation="fadeInUp" delay={600} style={styles.actionContainer}>
           <TouchableOpacity 
-            style={styles.emergencyButton}
-            onPress={() => navigation.navigate('EmergencyGuide')}
+            style={styles.generateButton}
+            onPress={generateLoveTopic}
+            disabled={isLoading}
           >
-            <LinearGradient 
-              colors={['#ef4444', '#dc2626']} 
-              style={styles.emergencyGradient}
+            <LinearGradient
+              colors={isLoading ? ['#94a3b8', '#64748b'] : ['#ff6b9d', '#c44569']}
+              style={styles.buttonGradient}
             >
-              <Ionicons name="medical-outline" size={20} color="white" />
-              <Text style={styles.emergencyText}>응급 상황 대화법</Text>
+              <Ionicons 
+                name={isLoading ? "hourglass-outline" : "refresh-outline"} 
+                size={20} 
+                color="white" 
+              />
+              <Text style={styles.buttonText}>
+                {isLoading ? '생성 중...' : '새로운 코칭 받기'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
+        </Animatable.View>
+
+        <Animatable.View animation="fadeInUp" delay={700} style={styles.tipsContainer}>
+          <Text style={styles.tipsTitle}>💖 연애 대화 꿀팁</Text>
+          
+          <View style={styles.tipItem}>
+            <Text style={styles.tipNumber}>1</Text>
+            <Text style={styles.tipText}>상대방의 말을 끝까지 들어주고 공감해주세요</Text>
+          </View>
+          
+          <View style={styles.tipItem}>
+            <Text style={styles.tipNumber}>2</Text>
+            <Text style={styles.tipText}>자신의 진솔한 이야기를 조금씩 공유해보세요</Text>
+          </View>
+          
+          <View style={styles.tipItem}>
+            <Text style={styles.tipNumber}>3</Text>
+            <Text style={styles.tipText}>상대방이 관심있어 하는 주제를 기억해두세요</Text>
+          </View>
+          
+          <View style={styles.tipItem}>
+            <Text style={styles.tipNumber}>4</Text>
+            <Text style={styles.tipText}>너무 급하게 진전시키려 하지 말고 천천히 접근하세요</Text>
+          </View>
         </Animatable.View>
       </ScrollView>
     </SafeAreaView>
@@ -282,50 +253,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '500',
-  },
   header: {
-    paddingTop: 50,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-    position: 'relative',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   headerContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-  },
-  headerIcon: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
     marginBottom: 8,
   },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  placeholder: {
+    width: 40,
+  },
   headerSubtitle: {
-    fontSize: 16,
+    paddingHorizontal: 20,
+  },
+  subtitleText: {
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
   },
@@ -333,104 +287,128 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  stageSelector: {
+  selectorContainer: {
     marginTop: 20,
-    marginBottom: 30,
   },
   selectorTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#1e293b',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   stageScroll: {
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
+    marginBottom: 10,
   },
-  stageButton: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    paddingVertical: 12,
+  stageOption: {
     paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    backgroundColor: 'white',
     marginRight: 12,
+    flexDirection: 'row',
     alignItems: 'center',
     minWidth: 100,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
   },
-  stageIcon: {
-    fontSize: 24,
-    marginBottom: 8,
+  stageEmoji: {
+    fontSize: 16,
+    marginRight: 6,
   },
-  stageText: {
-    fontSize: 12,
+  stageLabel: {
+    fontSize: 14,
     color: '#64748b',
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  stageTextSelected: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  typeSelector: {
-    marginBottom: 30,
   },
   typeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  typeButton: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
+  typeOption: {
+    width: '48%',
+    flexDirection: 'row',
     alignItems: 'center',
-    width: (width - 60) / 3,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    backgroundColor: 'white',
     marginBottom: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
   },
-  typeButtonSelected: {
-    backgroundColor: '#ff6b9d',
+  selectedTypeOption: {
+    borderColor: '#ff6b9d',
+    backgroundColor: '#fef7f0',
   },
-  typeText: {
-    fontSize: 12,
+  typeLabel: {
+    marginLeft: 8,
+    fontSize: 14,
     color: '#64748b',
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: 8,
   },
-  typeTextSelected: {
-    color: 'white',
-    fontWeight: '600',
+  sectionHeader: {
+    marginTop: 30,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1e293b',
     marginBottom: 8,
   },
   sectionDescription: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#64748b',
-    marginBottom: 24,
-    lineHeight: 24,
+    lineHeight: 20,
   },
-  topicsContainer: {
-    marginBottom: 30,
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  errorText: {
+    marginTop: 16,
+    marginBottom: 20,
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   topicCard: {
     backgroundColor: 'white',
     borderRadius: 16,
-    marginBottom: 16,
-    elevation: 4,
+    padding: 20,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -439,116 +417,111 @@ const styles = StyleSheet.create({
   topicHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    marginBottom: 20,
   },
   topicIcon: {
     fontSize: 24,
-    marginRight: 16,
-  },
-  topicTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1e293b',
-    flex: 1,
-  },
-  levelBadge: {
-    backgroundColor: '#e2e8f0',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
     marginRight: 12,
   },
-  levelText: {
-    fontSize: 10,
-    color: '#64748b',
-    fontWeight: '600',
+  topicCategory: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e293b',
   },
-  exampleContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+  topicContent: {
+    gap: 16,
   },
-  exampleItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#fef7f7',
+  topicLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ff6b9d',
+    marginBottom: 4,
+  },
+  topicExample: {
+    fontSize: 16,
+    color: '#1e293b',
+    fontStyle: 'italic',
+    backgroundColor: '#fef7f0',
+    padding: 16,
     borderRadius: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
+    borderLeftWidth: 4,
     borderLeftColor: '#ff6b9d',
   },
-  exampleContent: {
-    flex: 1,
+  tipLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    marginBottom: 4,
+    marginTop: 8,
   },
-  exampleText: {
-    fontSize: 15,
-    color: '#374151',
-    fontStyle: 'italic',
-  },
-  adviceContainer: {
-    marginBottom: 30,
-  },
-  tipsSection: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  warningsSection: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  adviceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  adviceTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginLeft: 12,
-  },
-  adviceItem: {
-    marginBottom: 8,
-  },
-  adviceText: {
+  topicTip: {
     fontSize: 14,
     color: '#64748b',
     lineHeight: 20,
+    backgroundColor: '#fef3c7',
+    padding: 12,
+    borderRadius: 8,
   },
-  footer: {
-    marginBottom: 40,
+  actionContainer: {
+    marginTop: 30,
+    marginBottom: 20,
   },
-  emergencyButton: {
-    borderRadius: 16,
+  generateButton: {
+    borderRadius: 12,
     overflow: 'hidden',
   },
-  emergencyGradient: {
+  buttonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
   },
-  emergencyText: {
-    color: 'white',
+  buttonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    color: 'white',
     marginLeft: 8,
+  },
+  tipsContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 40,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  tipsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 16,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  tipNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#ff6b9d',
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginRight: 12,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
   },
 });
 
