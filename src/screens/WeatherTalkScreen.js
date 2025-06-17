@@ -6,66 +6,42 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Dimensions,
-  Share,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
-import WeatherService from '../services/WeatherService';
-
-const { width, height } = Dimensions.get('window');
+import UnifiedConversationService from '../services/UnifiedConversationService';
 
 const WeatherTalkScreen = ({ navigation, route }) => {
-  const [weatherTopics, setWeatherTopics] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedTopic, setSelectedTopic] = useState(null);
+  const { weather } = route.params;
+  const [conversationTopic, setConversationTopic] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const { weather } = route.params || {};
-  const WEATHER_API_KEY = process.env.WEATHER_API_KEY || 'YOUR_WEATHER_API_KEY';
+  const conversationService = new UnifiedConversationService(process.env.OPENAI_API_KEY);
 
   useEffect(() => {
-    generateWeatherTopics();
+    generateWeatherTopic();
   }, []);
 
-  const generateWeatherTopics = async () => {
+  const generateWeatherTopic = async () => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      const weatherService = new WeatherService(WEATHER_API_KEY);
-      const topics = weatherService.generateWeatherTopics(weather);
-      setWeatherTopics(topics);
+      const topic = await conversationService.generateSingleConversationTopic('weather', { weather });
+      setConversationTopic(topic);
     } catch (error) {
-      console.log('Failed to generate weather topics:', error);
-      // 기본 주제 설정
-      setWeatherTopics([
-        {
-          category: 'general',
-          title: '오늘의 날씨 이야기',
-          suggestions: [
-            '오늘 날씨 어때?',
-            '날씨에 따라 기분이 달라지는 것 같아',
-            '계절이 바뀌는 게 느껴져',
-            '날씨 예보 봤어?'
-          ],
-          icon: '🌤️'
-        }
-      ]);
+      console.error('Weather topic generation failed:', error);
+      setError('대화 주제 생성 중 오류가 발생했습니다.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const getWeatherBackground = () => {
-    if (!weather) return ['#667eea', '#764ba2'];
-    
-    if (weather.sky === 'rainy') return ['#4facfe', '#00f2fe'];
-    if (weather.sky === 'snowy') return ['#a8edea', '#fed6e3'];
-    if (weather.sky === 'cloudy') return ['#667eea', '#764ba2'];
-    if (weather.temperature >= 25) return ['#ff9a9e', '#fecfef'];
-    if (weather.temperature <= 5) return ['#a8edea', '#fed6e3'];
-    return ['#667eea', '#764ba2'];
-  };
-
-  const getWeatherIcon = () => {
+  const getWeatherIcon = (weather) => {
     if (!weather) return '🌤️';
     
     if (weather.sky === 'rainy') return '🌧️';
@@ -76,154 +52,164 @@ const WeatherTalkScreen = ({ navigation, route }) => {
     return '🌤️';
   };
 
-  const getWeatherDescription = () => {
-    if (!weather) return '날씨 정보를 가져올 수 없습니다';
+  const getWeatherDescription = (weather) => {
+    if (!weather) return '날씨 정보 없음';
     
-    let description = `현재 기온 ${weather.temperature}°C`;
-    if (weather.humidity) {
-      description += `, 습도 ${weather.humidity}%`;
-    }
-    if (weather.precipitation > 0) {
-      description += `, 강수량 ${weather.precipitation}mm`;
-    }
+    let description = `${weather.temperature}°C`;
+    if (weather.sky === 'rainy') description += ', 비가 내려요';
+    else if (weather.sky === 'snowy') description += ', 눈이 내려요';
+    else if (weather.sky === 'cloudy') description += ', 흐려요';
+    else description += ', 맑아요';
+    
     return description;
   };
 
-  const renderTopicCard = (topic, index) => (
-    <Animatable.View
-      key={index}
-      animation="fadeInUp"
-      delay={index * 200}
-      style={styles.topicCard}
-    >
-      <TouchableOpacity
-        onPress={() => setSelectedTopic(selectedTopic === index ? null : index)}
-        activeOpacity={0.8}
+  const renderWeatherInfo = () => (
+    <Animatable.View animation="fadeIn" style={styles.weatherCard}>
+      <LinearGradient
+        colors={['#00d2ff', '#3a7bd5']}
+        style={styles.weatherGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <View style={styles.topicHeader}>
-          <Text style={styles.topicIcon}>{topic.icon}</Text>
-          <Text style={styles.topicTitle}>{topic.title}</Text>
-          <Ionicons 
-            name={selectedTopic === index ? "chevron-up" : "chevron-down"} 
-            size={24} 
-            color="#64748b" 
-          />
+        <View style={styles.weatherHeader}>
+          <Text style={styles.weatherIcon}>{getWeatherIcon(weather)}</Text>
+          <View style={styles.weatherInfo}>
+            <Text style={styles.weatherTitle}>현재 날씨</Text>
+            <Text style={styles.weatherDescription}>{getWeatherDescription(weather)}</Text>
+          </View>
         </View>
-      </TouchableOpacity>
-
-      {selectedTopic === index && (
-        <Animatable.View animation="fadeInDown" style={styles.suggestionContainer}>
-          {topic.suggestions.map((suggestion, suggestionIndex) => (
-            <TouchableOpacity
-              key={suggestionIndex}
-              style={styles.suggestionItem}
-              onPress={() => handleSuggestionPress(suggestion)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.suggestionContent}>
-                <Ionicons name="chatbubble-outline" size={20} color="#667eea" />
-                <Text style={styles.suggestionText}>{suggestion}</Text>
+        
+        {weather.humidity && (
+          <View style={styles.weatherDetails}>
+            <View style={styles.weatherDetailItem}>
+              <Ionicons name="water-outline" size={16} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.weatherDetailText}>습도 {weather.humidity}%</Text>
+            </View>
+            {weather.precipitation > 0 && (
+              <View style={styles.weatherDetailItem}>
+                <Ionicons name="rainy-outline" size={16} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.weatherDetailText}>강수량 {weather.precipitation}mm</Text>
               </View>
-              <Ionicons name="copy-outline" size={18} color="#94a3b8" />
-            </TouchableOpacity>
-          ))}
-        </Animatable.View>
-      )}
+            )}
+          </View>
+        )}
+      </LinearGradient>
     </Animatable.View>
   );
 
-  const handleSuggestionPress = async (suggestion) => {
-    try {
-      await Share.share({
-        message: suggestion,
-        title: '날씨 대화 주제',
-      });
-    } catch (error) {
-      console.log('Share failed:', error);
+  const renderConversationTopic = () => {
+    if (isLoading) {
+      return (
+        <Animatable.View animation="fadeIn" style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#00d2ff" />
+          <Text style={styles.loadingText}>AI가 날씨에 맞는 대화 주제를 생성 중입니다...</Text>
+        </Animatable.View>
+      );
     }
-  };
 
-  if (loading) {
+    if (error) {
+      return (
+        <Animatable.View animation="fadeIn" style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={generateWeatherTopic}>
+            <Text style={styles.retryButtonText}>다시 시도</Text>
+          </TouchableOpacity>
+        </Animatable.View>
+      );
+    }
+
+    if (!conversationTopic) return null;
+
     return (
-      <SafeAreaView style={styles.container}>
-        <LinearGradient colors={getWeatherBackground()} style={styles.loadingContainer}>
-          <Animatable.View animation="pulse" iterationCount="infinite">
-            <Text style={styles.loadingText}>날씨 기반 대화 주제 생성 중...</Text>
-          </Animatable.View>
-        </LinearGradient>
-      </SafeAreaView>
+      <Animatable.View animation="fadeInUp" delay={300} style={styles.topicCard}>
+        <View style={styles.topicHeader}>
+          <Text style={styles.topicIcon}>{conversationTopic.icon}</Text>
+          <Text style={styles.topicCategory}>{conversationTopic.category}</Text>
+        </View>
+        
+        <View style={styles.topicContent}>
+          <Text style={styles.topicLabel}>💬 추천 대화</Text>
+          <Text style={styles.topicExample}>"{conversationTopic.example}"</Text>
+          
+          <Text style={styles.tipLabel}>💡 사용 팁</Text>
+          <Text style={styles.topicTip}>{conversationTopic.tip}</Text>
+        </View>
+      </Animatable.View>
     );
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={getWeatherBackground()} style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-
-        <Animatable.View animation="fadeInDown" style={styles.headerContent}>
-          <Text style={styles.weatherIcon}>{getWeatherIcon()}</Text>
+      {/* Custom Header */}
+      <LinearGradient
+        colors={['#00d2ff', '#3a7bd5']}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>오늘의 날씨 톡</Text>
-          <Text style={styles.weatherDescription}>{getWeatherDescription()}</Text>
-        </Animatable.View>
+          <View style={styles.placeholder} />
+        </View>
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Animatable.View animation="fadeIn" delay={300}>
-          <Text style={styles.sectionTitle}>
-            날씨에 맞는 대화 주제 {weatherTopics.length}개
-          </Text>
+        {renderWeatherInfo()}
+        
+        <Animatable.View animation="fadeIn" delay={200} style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>🤖 AI 추천 대화 주제</Text>
           <Text style={styles.sectionDescription}>
-            현재 날씨 상황에 최적화된 대화 주제를 추천해드려요
+            현재 날씨를 분석하여 가장 적절한 대화 주제를 추천해드립니다
           </Text>
         </Animatable.View>
 
-        <View style={styles.topicsContainer}>
-          {weatherTopics.map((topic, index) => renderTopicCard(topic, index))}
-        </View>
+        {renderConversationTopic()}
 
-        <Animatable.View animation="fadeInUp" delay={600} style={styles.tipsContainer}>
-          <View style={styles.tipHeader}>
-            <Ionicons name="bulb-outline" size={24} color="#f59e0b" />
-            <Text style={styles.tipTitle}>날씨 대화 팁</Text>
-          </View>
-          
-          <View style={styles.tipItem}>
-            <Text style={styles.tipText}>
-              🌡️ 온도 차이를 언급하면 자연스럽게 대화가 시작돼요
-            </Text>
-          </View>
-          
-          <View style={styles.tipItem}>
-            <Text style={styles.tipText}>
-              ☔ 비 오는 날엔 실내 활동이나 추억 이야기가 좋아요
-            </Text>
-          </View>
-          
-          <View style={styles.tipItem}>
-            <Text style={styles.tipText}>
-              ☀️ 맑은 날엔 야외 활동이나 계획 세우기 대화를 추천해요
-            </Text>
-          </View>
-        </Animatable.View>
-
-        <Animatable.View animation="fadeInUp" delay={800} style={styles.footer}>
+        <Animatable.View animation="fadeInUp" delay={500} style={styles.actionContainer}>
           <TouchableOpacity 
-            style={styles.refreshButton}
-            onPress={generateWeatherTopics}
+            style={styles.generateButton}
+            onPress={generateWeatherTopic}
+            disabled={isLoading}
           >
-            <LinearGradient 
-              colors={['#667eea', '#764ba2']} 
-              style={styles.refreshGradient}
+            <LinearGradient
+              colors={isLoading ? ['#94a3b8', '#64748b'] : ['#00d2ff', '#3a7bd5']}
+              style={styles.buttonGradient}
             >
-              <Ionicons name="refresh-outline" size={20} color="white" />
-              <Text style={styles.refreshText}>새로운 주제 생성</Text>
+              <Ionicons 
+                name={isLoading ? "hourglass-outline" : "refresh-outline"} 
+                size={20} 
+                color="white" 
+              />
+              <Text style={styles.buttonText}>
+                {isLoading ? '생성 중...' : '새로운 주제 생성'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
+        </Animatable.View>
+
+        <Animatable.View animation="fadeInUp" delay={600} style={styles.tipsContainer}>
+          <Text style={styles.tipsTitle}>📚 날씨 대화 꿀팁</Text>
+          
+          <View style={styles.tipItem}>
+            <Text style={styles.tipNumber}>1</Text>
+            <Text style={styles.tipText}>날씨는 누구나 공감할 수 있는 안전한 대화 주제예요</Text>
+          </View>
+          
+          <View style={styles.tipItem}>
+            <Text style={styles.tipNumber}>2</Text>
+            <Text style={styles.tipText}>개인적인 느낌이나 경험을 함께 공유하면 더 자연스러워요</Text>
+          </View>
+          
+          <View style={styles.tipItem}>
+            <Text style={styles.tipNumber}>3</Text>
+            <Text style={styles.tipText}>날씨에서 시작해서 계획이나 취미로 대화를 확장해보세요</Text>
+          </View>
         </Animatable.View>
       </ScrollView>
     </SafeAreaView>
@@ -235,78 +221,146 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '500',
-  },
   header: {
-    paddingTop: 50,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-    position: 'relative',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingTop: 40,
+    paddingBottom: 16,
   },
   headerContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
   },
-  weatherIcon: {
-    fontSize: 48,
-    marginBottom: 12,
+  backButton: {
+    padding: 8,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 8,
   },
-  weatherDescription: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
+  placeholder: {
+    width: 40,
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
+  weatherCard: {
+    marginTop: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  weatherGradient: {
+    padding: 20,
+  },
+  weatherHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  weatherIcon: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  weatherInfo: {
+    flex: 1,
+  },
+  weatherTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  weatherDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  weatherDetails: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  weatherDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+    marginBottom: 8,
+  },
+  weatherDetailText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginLeft: 4,
+  },
+  sectionHeader: {
+    marginTop: 30,
+    marginBottom: 20,
+  },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1e293b',
-    marginTop: 30,
     marginBottom: 8,
   },
   sectionDescription: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#64748b',
-    marginBottom: 30,
-    lineHeight: 24,
+    lineHeight: 20,
   },
-  topicsContainer: {
-    marginBottom: 30,
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  errorText: {
+    marginTop: 16,
+    marginBottom: 20,
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   topicCard: {
     backgroundColor: 'white',
     borderRadius: 16,
-    marginBottom: 16,
-    elevation: 4,
+    padding: 20,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -315,92 +369,111 @@ const styles = StyleSheet.create({
   topicHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    marginBottom: 20,
   },
   topicIcon: {
     fontSize: 24,
-    marginRight: 16,
+    marginRight: 12,
   },
-  topicTitle: {
+  topicCategory: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#1e293b',
-    flex: 1,
   },
-  suggestionContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+  topicContent: {
+    gap: 16,
   },
-  suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    marginBottom: 8,
+  topicLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#00d2ff',
+    marginBottom: 4,
   },
-  suggestionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  suggestionText: {
+  topicExample: {
     fontSize: 16,
-    color: '#374151',
-    marginLeft: 12,
-    flex: 1,
+    color: '#1e293b',
+    fontStyle: 'italic',
+    backgroundColor: '#f1f5f9',
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#00d2ff',
+  },
+  tipLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    marginBottom: 4,
+    marginTop: 8,
+  },
+  topicTip: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
+    backgroundColor: '#fef3c7',
+    padding: 12,
+    borderRadius: 8,
+  },
+  actionContainer: {
+    marginTop: 30,
+    marginBottom: 20,
+  },
+  generateButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  buttonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+    marginLeft: 8,
   },
   tipsContainer: {
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 30,
-    elevation: 4,
+    marginBottom: 40,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
-  tipHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  tipsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
     marginBottom: 16,
   },
-  tipTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginLeft: 12,
-  },
   tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
+  tipNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#00d2ff',
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginRight: 12,
+  },
   tipText: {
+    flex: 1,
     fontSize: 14,
     color: '#64748b',
     lineHeight: 20,
-  },
-  footer: {
-    marginBottom: 40,
-  },
-  refreshButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  refreshGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-  },
-  refreshText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
   },
 });
 
