@@ -59,7 +59,7 @@ const HomeScreen = ({ navigation }) => {
       subtitle: `${currentWeather?.temperature || 20}°C ${getWeatherIcon(currentWeather)}`,
       icon: 'partly-sunny-outline',
       color: ['#00d2ff', '#3a7bd5'],
-      description: '실시간 날씨에 맞는 대화 주제를 추천받으세요',
+      description: '실시간 날씨에 맞는 대화 주제를 AI가 추천해드려요',
       isNew: true,
       badge: 'LIVE',
       type: 'weather'
@@ -70,46 +70,19 @@ const HomeScreen = ({ navigation }) => {
       subtitle: '썸부터 연애까지 가이드',
       icon: 'heart-outline',
       color: ['#ff6b9d', '#c44569'],
-      description: '단계별 연애 대화법과 상황별 멘트를 제안받으세요',
+      description: '단계별 연애 대화법과 상황별 멘트를 AI가 제안해드려요',
       isNew: true,
       badge: 'HOT',
       type: 'love'
     },
     {
       id: 3,
-      title: '관계별 대화',
-      subtitle: '모든 상황에 통하는 소통법',
-      icon: 'people-outline',
-      color: ['#667eea', '#764ba2'],
-      description: '세대, 직장, 모임, 가족 상황별 맞춤 대화법',
-      type: 'relationship'
-    },
-    {
-      id: 4,
-      title: '일상 대화',
-      subtitle: '매일 써먹는 자연스러운 대화',
-      icon: 'cafe-outline',
-      color: ['#f093fb', '#f5576c'],
-      description: '아침부터 저녁까지 시간대별 대화 주제',
-      type: 'daily'
-    },
-    {
-      id: 5,
-      title: '주제별 대화',
-      subtitle: '관심사로 시작하는 즐거운 대화',
-      icon: 'bulb-outline',
-      color: ['#4facfe', '#00f2fe'],
-      description: '취미, 트렌드, 여행, 문화 등 다양한 주제',
-      type: 'topics'
-    },
-    {
-      id: 6,
-      title: '상황별 대화',
-      subtitle: '특별한 순간을 위한 대화 솔루션',
+      title: '통합 대화 도우미',
+      subtitle: '모든 상황에 통하는 맞춤 대화',
       icon: 'chatbubbles-outline',
-      color: ['#43e97b', '#38f9d7'],
-      description: '첫 만남, 어색함 해소, 갈등 해결 등',
-      type: 'situations'
+      color: ['#667eea', '#764ba2'],
+      description: '관계, 상황, 주제를 고려한 개인 맞춤형 대화 주제',
+      type: 'unified'
     }
   ];
 
@@ -172,7 +145,7 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.weatherIcon}>{getWeatherIcon(currentWeather)}</Text>
           <View style={styles.weatherTextContainer}>
             <Text style={styles.weatherTemp}>{currentWeather.temperature}°C</Text>
-            <Text style={styles.weatherDesc}>실시간 날씨 기반 대화 주제</Text>
+            <Text style={styles.weatherDesc}>실시간 날씨 기반 AI 대화 추천</Text>
           </View>
         </View>
       </Animatable.View>
@@ -188,7 +161,7 @@ const HomeScreen = ({ navigation }) => {
         <Animatable.View animation="fadeInDown" style={styles.header}>
           <Text style={styles.headerTitle}>TalkTalk</Text>
           <Text style={styles.headerSubtitle}>
-            대화가 필요한 모든 순간을 위한 완벽한 가이드
+            AI가 추천하는 완벽한 대화 가이드
           </Text>
         </Animatable.View>
         
@@ -199,7 +172,7 @@ const HomeScreen = ({ navigation }) => {
         <Animatable.View animation="fadeIn" delay={300}>
           <Text style={styles.sectionTitle}>어떤 대화를 시작하시겠어요?</Text>
           <Text style={styles.sectionDescription}>
-            상황에 맞는 완벽한 대화 주제와 방법을 찾아보세요
+            AI가 상황에 맞는 완벽한 대화 주제를 추천해드립니다
           </Text>
         </Animatable.View>
 
@@ -208,33 +181,33 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         <Animatable.View animation="fadeInUp" delay={800} style={styles.footer}>
-          <Text style={styles.footerTitle}>🚀 새로운 기능</Text>
+          <Text style={styles.footerTitle}>🤖 AI 기반 스마트 추천</Text>
           
           <View style={styles.featureContainer}>
             <Ionicons name="cloud-outline" size={24} color="#00d2ff" />
             <Text style={styles.featureText}>
-              <Text style={styles.featureBold}>실시간 날씨 연동:</Text> 기상청 API를 활용한 날씨 기반 대화 주제
+              <Text style={styles.featureBold}>실시간 날씨 AI:</Text> 현재 날씨를 분석하여 적절한 대화 주제 생성
             </Text>
           </View>
           
           <View style={styles.featureContainer}>
             <Ionicons name="heart-outline" size={24} color="#ff6b9d" />
             <Text style={styles.featureText}>
-              <Text style={styles.featureBold}>연애 코치:</Text> 썸부터 연애까지 단계별 대화 가이드
+              <Text style={styles.featureBold}>연애 코치 AI:</Text> 관계 단계별 맞춤 대화법과 실전 멘트 제공
             </Text>
           </View>
           
           <View style={styles.featureContainer}>
-            <Ionicons name="people-outline" size={24} color="#667eea" />
+            <Ionicons name="chatbubbles-outline" size={24} color="#667eea" />
             <Text style={styles.featureText}>
-              <Text style={styles.featureBold}>통합 관계 대화:</Text> 세대, 직장, 모임, 가족 상황 통합 관리
+              <Text style={styles.featureBold}>통합 대화 AI:</Text> 상황, 관계, 나이, 성향을 고려한 개인화 추천
             </Text>
           </View>
 
           <View style={styles.featureContainer}>
             <Ionicons name="sparkles-outline" size={24} color="#43e97b" />
             <Text style={styles.featureText}>
-              <Text style={styles.featureBold}>AI 맞춤 추천:</Text> 상황과 관계에 최적화된 대화 주제
+              <Text style={styles.featureBold}>스마트 학습:</Text> 사용 패턴을 학습하여 더 정확한 추천 제공
             </Text>
           </View>
         </Animatable.View>
