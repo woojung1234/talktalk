@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,46 +7,109 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
+import WeatherService from '../services/WeatherService';
 
 const { width, height } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
+  const [currentWeather, setCurrentWeather] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 기상청 API 키 (실제 사용시 환경변수로 관리)
+  const WEATHER_API_KEY = process.env.WEATHER_API_KEY || 'YOUR_WEATHER_API_KEY';
+
+  useEffect(() => {
+    initializeWeatherService();
+  }, []);
+
+  const initializeWeatherService = async () => {
+    try {
+      const weatherService = new WeatherService(WEATHER_API_KEY);
+      const weather = await weatherService.getCurrentWeather('서울');
+      setCurrentWeather(weather);
+    } catch (error) {
+      console.log('Weather service initialization failed:', error);
+      // 기본값으로 설정
+      setCurrentWeather({ temperature: 20, sky: 'clear' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getWeatherIcon = (weather) => {
+    if (!weather) return '🌤️';
+    
+    if (weather.sky === 'rainy') return '🌧️';
+    if (weather.sky === 'snowy') return '❄️';
+    if (weather.sky === 'cloudy') return '☁️';
+    if (weather.temperature >= 25) return '☀️';
+    if (weather.temperature <= 5) return '🥶';
+    return '🌤️';
+  };
+
   const situationCards = [
     {
       id: 1,
-      title: '세대별 대화',
-      subtitle: '20대와 50대 사이의 소통',
-      icon: 'people-outline',
-      color: ['#667eea', '#764ba2'],
-      description: '다른 세대와 자연스럽게 대화하는 방법을 찾아보세요'
+      title: '오늘의 날씨 톡',
+      subtitle: `${currentWeather?.temperature || 20}°C ${getWeatherIcon(currentWeather)}`,
+      icon: 'partly-sunny-outline',
+      color: ['#00d2ff', '#3a7bd5'],
+      description: '실시간 날씨에 맞는 대화 주제를 추천받으세요',
+      isNew: true,
+      badge: 'LIVE',
+      type: 'weather'
     },
     {
       id: 2,
-      title: '직장 내 소통',
-      subtitle: '상사, 동료와의 대화',
-      icon: 'briefcase-outline',
-      color: ['#f093fb', '#f5576c'],
-      description: '업무 환경에서 효과적인 대화 주제를 제안받으세요'
+      title: '연애 코치 톡',
+      subtitle: '썸부터 연애까지 가이드',
+      icon: 'heart-outline',
+      color: ['#ff6b9d', '#c44569'],
+      description: '단계별 연애 대화법과 상황별 멘트를 제안받으세요',
+      isNew: true,
+      badge: 'HOT',
+      type: 'love'
     },
     {
       id: 3,
-      title: '모임 & 네트워킹',
-      subtitle: '스몰토크와 첫 만남',
-      icon: 'chatbubbles-outline',
-      color: ['#4facfe', '#00f2fe'],
-      description: '처음 만나는 사람들과의 자연스러운 대화 시작하기'
+      title: '관계별 대화',
+      subtitle: '모든 상황에 통하는 소통법',
+      icon: 'people-outline',
+      color: ['#667eea', '#764ba2'],
+      description: '세대, 직장, 모임, 가족 상황별 맞춤 대화법',
+      type: 'relationship'
     },
     {
       id: 4,
-      title: '가족 간 대화',
-      subtitle: '부모님, 자녀와의 소통',
-      icon: 'home-outline',
+      title: '일상 대화',
+      subtitle: '매일 써먹는 자연스러운 대화',
+      icon: 'cafe-outline',
+      color: ['#f093fb', '#f5576c'],
+      description: '아침부터 저녁까지 시간대별 대화 주제',
+      type: 'daily'
+    },
+    {
+      id: 5,
+      title: '주제별 대화',
+      subtitle: '관심사로 시작하는 즐거운 대화',
+      icon: 'bulb-outline',
+      color: ['#4facfe', '#00f2fe'],
+      description: '취미, 트렌드, 여행, 문화 등 다양한 주제',
+      type: 'topics'
+    },
+    {
+      id: 6,
+      title: '상황별 대화',
+      subtitle: '특별한 순간을 위한 대화 솔루션',
+      icon: 'chatbubbles-outline',
       color: ['#43e97b', '#38f9d7'],
-      description: '가족 구성원들과 더 깊이 있는 대화를 나누어보세요'
+      description: '첫 만남, 어색함 해소, 갈등 해결 등',
+      type: 'situations'
     }
   ];
 
@@ -54,12 +117,12 @@ const HomeScreen = ({ navigation }) => {
     <Animatable.View
       key={item.id}
       animation="fadeInUp"
-      delay={index * 200}
+      delay={index * 150}
       style={styles.cardContainer}
     >
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('ConversationGenerator', { situation: item })}
+        onPress={() => handleCardPress(item)}
         activeOpacity={0.8}
       >
         <LinearGradient
@@ -68,6 +131,12 @@ const HomeScreen = ({ navigation }) => {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
+          {item.isNew && (
+            <View style={[styles.badge, { backgroundColor: item.badge === 'HOT' ? '#ff4757' : '#2ed573' }]}>
+              <Text style={styles.badgeText}>{item.badge}</Text>
+            </View>
+          )}
+          
           <View style={styles.cardHeader}>
             <Ionicons name={item.icon} size={32} color="white" />
             <View style={styles.cardTextContainer}>
@@ -81,6 +150,35 @@ const HomeScreen = ({ navigation }) => {
     </Animatable.View>
   );
 
+  const handleCardPress = (item) => {
+    if (item.type === 'weather') {
+      navigation.navigate('WeatherTalk', { weather: currentWeather });
+    } else if (item.type === 'love') {
+      navigation.navigate('LoveCoach');
+    } else {
+      navigation.navigate('ConversationGenerator', { 
+        situation: item,
+        conversationType: item.type
+      });
+    }
+  };
+
+  const renderWeatherInfo = () => {
+    if (!currentWeather) return null;
+
+    return (
+      <Animatable.View animation="fadeIn" delay={200} style={styles.weatherContainer}>
+        <View style={styles.weatherInfo}>
+          <Text style={styles.weatherIcon}>{getWeatherIcon(currentWeather)}</Text>
+          <View style={styles.weatherTextContainer}>
+            <Text style={styles.weatherTemp}>{currentWeather.temperature}°C</Text>
+            <Text style={styles.weatherDesc}>실시간 날씨 기반 대화 주제</Text>
+          </View>
+        </View>
+      </Animatable.View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
@@ -90,16 +188,18 @@ const HomeScreen = ({ navigation }) => {
         <Animatable.View animation="fadeInDown" style={styles.header}>
           <Text style={styles.headerTitle}>TalkTalk</Text>
           <Text style={styles.headerSubtitle}>
-            AI가 추천하는 세대별 대화 주제
+            대화가 필요한 모든 순간을 위한 완벽한 가이드
           </Text>
         </Animatable.View>
+        
+        {renderWeatherInfo()}
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Animatable.View animation="fadeIn" delay={300}>
-          <Text style={styles.sectionTitle}>어떤 상황에서 대화하시나요?</Text>
+          <Text style={styles.sectionTitle}>어떤 대화를 시작하시겠어요?</Text>
           <Text style={styles.sectionDescription}>
-            상황을 선택하면 맞춤형 대화 주제를 추천해드려요
+            상황에 맞는 완벽한 대화 주제와 방법을 찾아보세요
           </Text>
         </Animatable.View>
 
@@ -108,16 +208,33 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         <Animatable.View animation="fadeInUp" delay={800} style={styles.footer}>
+          <Text style={styles.footerTitle}>🚀 새로운 기능</Text>
+          
           <View style={styles.featureContainer}>
-            <Ionicons name="sparkles-outline" size={24} color="#667eea" />
+            <Ionicons name="cloud-outline" size={24} color="#00d2ff" />
             <Text style={styles.featureText}>
-              실시간 트렌드 반영으로 항상 최신 대화 주제 제공
+              <Text style={styles.featureBold}>실시간 날씨 연동:</Text> 기상청 API를 활용한 날씨 기반 대화 주제
             </Text>
           </View>
+          
           <View style={styles.featureContainer}>
-            <Ionicons name="bulb-outline" size={24} color="#667eea" />
+            <Ionicons name="heart-outline" size={24} color="#ff6b9d" />
             <Text style={styles.featureText}>
-              센스있는 대화 시작 방법과 팁도 함께 제공
+              <Text style={styles.featureBold}>연애 코치:</Text> 썸부터 연애까지 단계별 대화 가이드
+            </Text>
+          </View>
+          
+          <View style={styles.featureContainer}>
+            <Ionicons name="people-outline" size={24} color="#667eea" />
+            <Text style={styles.featureText}>
+              <Text style={styles.featureBold}>통합 관계 대화:</Text> 세대, 직장, 모임, 가족 상황 통합 관리
+            </Text>
+          </View>
+
+          <View style={styles.featureContainer}>
+            <Ionicons name="sparkles-outline" size={24} color="#43e97b" />
+            <Text style={styles.featureText}>
+              <Text style={styles.featureBold}>AI 맞춤 추천:</Text> 상황과 관계에 최적화된 대화 주제
             </Text>
           </View>
         </Animatable.View>
@@ -133,11 +250,12 @@ const styles = StyleSheet.create({
   },
   headerGradient: {
     paddingTop: 40,
-    paddingBottom: 30,
+    paddingBottom: 20,
     paddingHorizontal: 20,
   },
   header: {
     alignItems: 'center',
+    marginBottom: 16,
   },
   headerTitle: {
     fontSize: 32,
@@ -149,6 +267,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  weatherContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 20,
+  },
+  weatherInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weatherIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  weatherTextContainer: {
+    alignItems: 'center',
+  },
+  weatherTemp: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  weatherDesc: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   content: {
     flex: 1,
@@ -174,7 +320,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   card: {
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
     elevation: 8,
     shadowColor: '#000',
@@ -184,7 +330,22 @@ const styles = StyleSheet.create({
   },
   cardGradient: {
     padding: 20,
-    minHeight: 120,
+    minHeight: 130,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    elevation: 4,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -213,19 +374,26 @@ const styles = StyleSheet.create({
   footer: {
     marginBottom: 40,
   },
+  footerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
   featureContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     backgroundColor: 'white',
-    borderRadius: 12,
-    elevation: 2,
+    borderRadius: 16,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 8,
   },
   featureText: {
     fontSize: 14,
@@ -233,6 +401,10 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     flex: 1,
     lineHeight: 20,
+  },
+  featureBold: {
+    fontWeight: 'bold',
+    color: '#1e293b',
   },
 });
 
