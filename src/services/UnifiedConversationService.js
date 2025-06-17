@@ -1,6 +1,7 @@
 /**
  * 통합 대화 서비스
  * 모든 유형의 대화 주제를 GPT API를 통해 생성합니다.
+ * 요청당 1개의 주제만 생성하도록 최적화되었습니다.
  */
 
 import WeatherService from './WeatherService';
@@ -12,69 +13,64 @@ class UnifiedConversationService {
   }
 
   /**
-   * GPT API를 사용한 대화 주제 생성
-   * @param {string} type - 대화 유형 (weather, love, relationship, daily, topics, situations)
+   * GPT API를 사용한 대화 주제 생성 (1개만)
+   * @param {string} type - 대화 유형 (weather, love, unified)
    * @param {Object} context - 추가 컨텍스트 정보
-   * @returns {Promise<Array>} 대화 주제 배열
+   * @returns {Promise<Object>} 단일 대화 주제 객체
    */
-  async generateConversationTopics(type, context = {}) {
+  async generateSingleConversationTopic(type, context = {}) {
     try {
-      let prompt = '';
-      let systemMessage = '';
-
       switch (type) {
         case 'weather':
-          return await this.generateWeatherTopics(context);
+          return await this.generateSingleWeatherTopic(context);
         
         case 'love':
-          return await this.generateLoveTopics(context);
+          return await this.generateSingleLoveTopic(context);
         
         case 'unified':
-          return await this.generateUnifiedTopics(context);
+          return await this.generateSingleUnifiedTopic(context);
         
         default:
-          return await this.generateUnifiedTopics(context);
+          return await this.generateSingleUnifiedTopic(context);
       }
     } catch (error) {
       console.error('Conversation generation error:', error);
-      return this.getFallbackTopics(type);
+      return this.getSingleFallbackTopic(type);
     }
   }
 
   /**
-   * 날씨 기반 대화 주제 생성
+   * 날씨 기반 대화 주제 생성 (1개)
    */
-  async generateWeatherTopics(context) {
-    const weather = context.weather || await this.weatherService.getCurrentWeather(context.city);
+  async generateSingleWeatherTopic(context) {
+    const weather = context.weather || await this.weatherService.getCurrentWeather(context.city || '서울');
     
     const systemMessage = `당신은 날씨를 활용한 자연스러운 대화 주제를 제안하는 전문가입니다. 
-    현재 날씨 상황에 맞는 실제로 사용할 수 있는 대화 시작 멘트를 생성해주세요.`;
+    현재 날씨 상황에 맞는 실제로 사용할 수 있는 대화 시작 멘트를 1개만 생성해주세요.`;
 
     const prompt = `현재 날씨 정보:
 - 온도: ${weather.temperature}°C
 - 하늘 상태: ${this.getSkyDescription(weather.sky)}
-- 강수량: ${weather.precipitation}mm
-- 습도: ${weather.humidity}%
+- 강수량: ${weather.precipitation || 0}mm
+- 습도: ${weather.humidity || 50}%
 
-이 날씨에 맞는 자연스러운 대화 주제 5개를 다음 형식으로 생성해주세요:
+이 날씨에 가장 적합한 대화 주제 1개를 다음 형식으로 생성해주세요:
 
-1. 카테고리명 | 실제 대화 예시 | 사용 팁
-2. 카테고리명 | 실제 대화 예시 | 사용 팁
-...
+카테고리명 | 실제 대화 예시 | 사용 팁
 
-각 대화 예시는 실제로 사람들이 바로 사용할 수 있는 자연스러운 멘트여야 합니다.`;
+실제 대화 예시는 사람들이 바로 사용할 수 있는 자연스러운 멘트여야 합니다.`;
 
     return await this.callGPTAPI(systemMessage, prompt, 'weather');
   }
 
   /**
-   * 연애 코치 대화 주제 생성
+   * 연애 코치 대화 주제 생성 (1개)
    */
-  async generateLoveTopics(context) {
+  async generateSingleLoveTopic(context) {
     const { stage = 'first_meet', type = 'icebreaker', situation = '' } = context;
 
     const systemMessage = `당신은 연애 상담 전문가입니다. 
-    각 연애 단계와 상황에 맞는 실제로 사용할 수 있는 대화법을 제안해주세요.`;
+    각 연애 단계와 상황에 가장 적합한 대화법을 1개만 제안해주세요.`;
 
     const stageDescriptions = {
       'first_meet': '처음 만나는 상황',
@@ -97,57 +93,55 @@ class UnifiedConversationService {
 - 대화 유형: ${typeDescriptions[type]}
 - 추가 상황: ${situation}
 
-이 상황에 맞는 실제 사용 가능한 대화 가이드 5개를 다음 형식으로 생성해주세요:
+이 상황에 가장 적합한 대화 가이드 1개를 다음 형식으로 생성해주세요:
 
-1. 상황 설명 | 실제 대화 예시 | 사용할 때 주의점
-2. 상황 설명 | 실제 대화 예시 | 사용할 때 주의점
-...
+상황 설명 | 실제 대화 예시 | 사용할 때 주의점
 
-각 대화 예시는 해당 연애 단계에서 실제로 사용할 수 있는 자연스러운 멘트여야 합니다.`;
+대화 예시는 해당 연애 단계에서 실제로 사용할 수 있는 자연스러운 멘트여야 합니다.`;
 
     return await this.callGPTAPI(systemMessage, prompt, 'love');
   }
 
   /**
-   * 통합 대화 주제 생성 (관계별, 일상, 주제별, 상황별 통합)
+   * 통합 대화 주제 생성 (1개)
    */
-  async generateUnifiedTopics(context) {
+  async generateSingleUnifiedTopic(context) {
     const { 
       relationship = '친구', 
       situation = '일상 대화', 
       topic = '', 
-      age_group = '20-30대',
-      formality = '편안함'
+      userAge = '25',
+      targetAge = '30',
+      mood = 'casual'
     } = context;
 
     const systemMessage = `당신은 다양한 상황에서의 대화 주제를 추천하는 전문가입니다. 
-    사용자의 상황과 관계에 맞는 실제로 사용할 수 있는 자연스러운 대화 주제를 제안해주세요.`;
+    사용자의 상황과 관계에 가장 적합한 대화 주제를 1개만 제안해주세요.`;
 
     const prompt = `대화 상황:
 - 관계: ${relationship}
 - 상황: ${situation}
 - 주제: ${topic || '자유'}
-- 연령대: ${age_group}
-- 분위기: ${formality}
+- 내 나이: ${userAge}세
+- 상대방 나이: ${targetAge}세
+- 분위기: ${mood}
 
-이 상황에 맞는 실제 사용 가능한 대화 주제 6개를 다음 형식으로 생성해주세요:
+이 상황에 가장 적합한 대화 주제 1개를 다음 형식으로 생성해주세요:
 
-1. 주제 카테고리 | 구체적인 대화 시작 멘트 | 대화를 이어가는 방법
-2. 주제 카테고리 | 구체적인 대화 시작 멘트 | 대화를 이어가는 방법
-...
+주제 카테고리 | 구체적인 대화 시작 멘트 | 대화를 이어가는 방법
 
-각 대화 시작 멘트는 해당 관계와 상황에서 실제로 사용할 수 있는 자연스러운 표현이어야 합니다.`;
+대화 시작 멘트는 해당 관계와 상황에서 실제로 사용할 수 있는 자연스러운 표현이어야 합니다.`;
 
     return await this.callGPTAPI(systemMessage, prompt, 'unified');
   }
 
   /**
-   * GPT API 호출
+   * GPT API 호출 (단일 응답)
    */
   async callGPTAPI(systemMessage, prompt, type) {
     if (!this.apiKey || this.apiKey === 'YOUR_OPENAI_API_KEY') {
-      console.log('Using fallback topics - OpenAI API key not configured');
-      return this.getFallbackTopics(type);
+      console.log('Using fallback topic - OpenAI API key not configured');
+      return this.getSingleFallbackTopic(type);
     }
 
     try {
@@ -163,7 +157,7 @@ class UnifiedConversationService {
             { role: 'system', content: systemMessage },
             { role: 'user', content: prompt }
           ],
-          max_tokens: 1000,
+          max_tokens: 200,
           temperature: 0.7,
         }),
       });
@@ -179,39 +173,34 @@ class UnifiedConversationService {
         throw new Error('No content received from GPT API');
       }
 
-      return this.parseGPTResponse(content, type);
+      return this.parseSingleGPTResponse(content, type);
     } catch (error) {
       console.error('GPT API call failed:', error);
-      return this.getFallbackTopics(type);
+      return this.getSingleFallbackTopic(type);
     }
   }
 
   /**
-   * GPT 응답 파싱
+   * GPT 응답 파싱 (단일 주제)
    */
-  parseGPTResponse(content, type) {
-    const lines = content.split('\n').filter(line => line.trim());
-    const topics = [];
-
-    lines.forEach(line => {
-      const trimmedLine = line.trim();
-      if (trimmedLine && /^\d+\./.test(trimmedLine)) {
-        const parts = trimmedLine.split('|').map(part => part.trim());
-        if (parts.length >= 3) {
-          const [numberAndCategory, example, tip] = parts;
-          const category = numberAndCategory.replace(/^\d+\.\s*/, '');
-          
-          topics.push({
-            category: category,
-            example: example,
-            tip: tip,
-            icon: this.getIconForCategory(category, type)
-          });
-        }
-      }
-    });
-
-    return topics.length > 0 ? topics : this.getFallbackTopics(type);
+  parseSingleGPTResponse(content, type) {
+    const cleanedContent = content.trim();
+    const parts = cleanedContent.split('|').map(part => part.trim());
+    
+    if (parts.length >= 3) {
+      const [category, example, tip] = parts;
+      
+      return {
+        category: category,
+        example: example,
+        tip: tip,
+        icon: this.getIconForCategory(category, type),
+        type: type
+      };
+    }
+    
+    // 파싱 실패시 fallback
+    return this.getSingleFallbackTopic(type);
   }
 
   /**
@@ -251,55 +240,53 @@ class UnifiedConversationService {
   }
 
   /**
-   * Fallback 주제 (API 오류시)
+   * Fallback 주제 (API 오류시) - 단일 주제
    */
-  getFallbackTopics(type) {
+  getSingleFallbackTopic(type) {
     const fallbackTopics = {
-      weather: [
-        {
-          category: '날씨 느낌 공유',
-          example: '오늘 날씨 어때? 나는 되게 상쾌한 느낌이야',
-          tip: '날씨에 대한 개인적인 느낌을 먼저 공유하면 자연스러워요',
-          icon: '🌤️'
-        },
-        {
-          category: '계절 변화 이야기',
-          example: '요즘 계절이 바뀌는 게 확실히 느껴져',
-          tip: '계절 변화는 누구나 공감할 수 있는 안전한 주제예요',
-          icon: '🍂'
-        }
-      ],
-      love: [
-        {
-          category: '관심사 탐색',
-          example: '평소에 뭐 하는 걸 좋아해?',
-          tip: '상대방의 답변에 적극적으로 반응해주세요',
-          icon: '💭'
-        },
-        {
-          category: '공통점 찾기',
-          example: '우리 취향이 비슷한 것 같아서 신기해',
-          tip: '공통점을 발견하면 친밀감이 높아져요',
-          icon: '💕'
-        }
-      ],
-      unified: [
-        {
-          category: '일상 공유',
-          example: '오늘 하루 어땠어? 특별한 일 있었어?',
-          tip: '상대방의 일상에 관심을 보이는 것부터 시작하세요',
-          icon: '☕'
-        },
-        {
-          category: '관심사 이야기',
-          example: '요즘 관심있는 거나 빠져있는 거 있어?',
-          tip: '상대방의 열정을 이끌어내는 질문이에요',
-          icon: '💡'
-        }
-      ]
+      weather: {
+        category: '날씨 느낌 공유',
+        example: '오늘 날씨 어때? 나는 되게 상쾌한 느낌이야',
+        tip: '날씨에 대한 개인적인 느낌을 먼저 공유하면 자연스러워요',
+        icon: '🌤️',
+        type: 'weather'
+      },
+      love: {
+        category: '관심사 탐색',
+        example: '평소에 뭐 하는 걸 좋아해?',
+        tip: '상대방의 답변에 적극적으로 반응해주세요',
+        icon: '💭',
+        type: 'love'
+      },
+      unified: {
+        category: '일상 공유',
+        example: '오늘 하루 어때? 특별한 일 있었어?',
+        tip: '상대방의 일상에 관심을 보이는 것부터 시작하세요',
+        icon: '☕',
+        type: 'unified'
+      }
     };
 
     return fallbackTopics[type] || fallbackTopics.unified;
+  }
+
+  // === 기존 메서드 유지 (하위 호환성) ===
+  
+  /**
+   * 기존 메서드 - 하위 호환성을 위해 유지
+   */
+  async generateConversationTopics(type, context = {}) {
+    // 단일 주제를 배열로 감싸서 반환
+    const singleTopic = await this.generateSingleConversationTopic(type, context);
+    return [singleTopic];
+  }
+
+  /**
+   * Fallback 주제 (기존 버전) - 하위 호환성을 위해 유지
+   */
+  getFallbackTopics(type) {
+    const singleTopic = this.getSingleFallbackTopic(type);
+    return [singleTopic];
   }
 }
 
