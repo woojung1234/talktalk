@@ -24,7 +24,7 @@
         "backgroundColor": "#6366f1"
       },
       "package": "com.woojung1234.talktalk",
-      "versionCode": 20,
+      "versionCode": 21,
       "permissions": ["INTERNET"],
       "compileSdkVersion": 33,
       "targetSdkVersion": 33
